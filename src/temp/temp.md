@@ -1,0 +1,1 @@
+Nessa Pasta Ficara Arquivos Temporarios

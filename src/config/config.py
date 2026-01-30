@@ -58,3 +58,18 @@ if config_file.exists():
         SQLITE = dados.get('SQLITE')
         HOST_FRONT = dados.get('HOST_FRONT')
 #!SECTION
+
+
+#SECTION - google
+EMAIL_GOOGLE = getenv("EMAIL_GOOGLE")
+SENHA_DE_APP = getenv("SENHA_DE_APP")
+
+if not SENHA_DE_APP or not SENHA_DE_APP.strip():
+    class SenhaAPP(Exception): pass
+    raise SenhaAPP('O sistema precisa da SENHA_DE_APP do Google no .env com um valor válido')
+
+if not EMAIL_GOOGLE or not EMAIL_GOOGLE.strip():
+    class EmailGoogle(Exception): pass
+    raise EmailGoogle('O sistema precisa da EMAIL_GOOGLE do Google no .env com um valor válido')
+    
+#!SECTION
