@@ -7,11 +7,11 @@ O AAMCS (Api de Aplicativo de Monitoramento de Consumo Sustentável) é uma API 
 Para instalar o AAMCS, siga os passos abaixo:
 1. Clone o repositório:
    ```bash
-   git clone -b nunes https://github.com/Arthur-Nunes-DsProjetoDs.git
+   git clone -b nunes https://github.com/NunesDevelloper/ProjetoDs.git AAMCS
    ```
 2. Navegue até o diretório do projeto:
    ```bash  
-    cd nunes
+    cd AAMCS
     ```
 3. Crie um ambiente virtual (opcional, mas recomendado):
    ```bash
@@ -44,3 +44,4 @@ O certificado tem que der o nome de `cert.pem` e a chave `key.pem`. Ex.: `python
 A documentação da API está disponível em: `http://<host>:<port>/docs` ou `https://<host>:<port>/docs` se HTTPS estiver habilitado.
 
 Substitua `<host>` e `<port>` pelos valores usados na inicialização do AAMCS.
+
