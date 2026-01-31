@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import HOST_FRONT
-from .services import Rota_Email
+from .services import Rota_Publics, Rota_Email
 
 app = FastAPI(title='Api do Aplicativo de Monitoramento de Consumo Sustentável')
 
@@ -28,16 +28,22 @@ def home_to_doc():
     #automaticamente para /docs.
     return RedirectResponse(url='/docs')
 
-
+#SECTION public
 app.include_router(
     #Todas as rotas deste grupo começarão com /public.
-    Rota_Email,
+    Rota_Publics,
     #Define o prefixo do endpoint. Para qualquer função neste roteador,
     #o caminho ficará assim: /public/endpoint — o endpoint pode mudar, mas /public não.
     prefix='/public',
     #Organiza as rotas deste grupo na documentação (/docs).
     tags=["Public"]
 )
+#!SECTION
 
-
-
+#SECTION - email
+app.include_router(
+    Rota_Email,
+    prefix='/emial',
+    tags=["Email", "Public"]
+)
+#!SECTION

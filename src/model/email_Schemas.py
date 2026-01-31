@@ -1,6 +1,4 @@
 from pydantic import BaseModel
 
-class EmailSend(BaseModel):
-    email: str
-    #FIXME - remover user qaundo o banco estiver pronto
-    user : str
+class BaseEmailSend(BaseModel): email: str
+class BaseEmailToken(BaseModel): token: str

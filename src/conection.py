@@ -26,7 +26,9 @@ except OperationalError:
 Base = declarative_base()
 
 #Cria a sessão para manipular a db
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine,
+                       #fala para Session usar o timezonte de utc
+                       connect_args={"init_command": "SET time_zone='+00:00'"})
 
 #Garante que, ao usar a ORM como dependência, a sessão será fechada automaticamente
 def get_session():
