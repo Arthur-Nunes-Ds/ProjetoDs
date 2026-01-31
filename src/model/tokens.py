@@ -1,7 +1,6 @@
 from src.conection import Base, engine
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from passlib.hash import sha256_crypt as sha256
 from datetime import datetime, timezone, timedelta
 from src.config import EXPIRATION_TIMER_MINUTES
 
