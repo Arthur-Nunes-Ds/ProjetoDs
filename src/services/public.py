@@ -6,7 +6,9 @@ from jose import jwt
 from datetime import datetime, timezone, timedelta
 from src.config import SECRETES_KEY,ALG,EXPIRATION_TIMER_MINUTES
 from src.conection import get_session
-from src.model import Usuario, BaseCriarUsuario, NotUser, SenhaInvalida
+from src.model import (Usuario, BaseCriarUsuario, NotUser, 
+    BaseEsqueciSenha ,SenhaInvalida, BaseEmailToken)
+from .email import Comfirmar_Email
 
 Rota_Publics = APIRouter()
 
@@ -20,7 +22,7 @@ def criar_token(id_user):
     return jwt_codificado
 
 #SECTION - Criar_Conta
-@Rota_Publics.post("/Criar_Conta")
+@Rota_Publics.post("/Criar_Conta", tags=["Cliente"])
 async def Criar_Conta(base: BaseCriarUsuario, session: Session = Depends(get_session)):
     """\nCria um novo cliente no sistema.\
         \nPara criar um cliente, informe os dados na requisição.\
@@ -46,7 +48,7 @@ async def Criar_Conta(base: BaseCriarUsuario, session: Session = Depends(get_ses
 #!SECTION
 
 #SECTION - Logar_Conta
-@Rota_Publics.post("/Logar_Conta")
+@Rota_Publics.post("/Logar_Conta", tags=["Cliente"])
 #OAuth2PasswordRequestForm: padrão do FastAPI para fazer autenticação mais simples no /docs
 async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
     '''\nRealiza o login do cliente e retorna um token JWT.\
@@ -85,4 +87,32 @@ async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(), session: Sess
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Senha inválida."
         )
+#!SECTION
+
+#SECTION -  esqueci a senha
+@Rota_Publics.post("/esqueci_senha", tags=["Cliente"])
+async def esqueci_senha(base : BaseEsqueciSenha , session: Session = Depends(get_session)):
+    '''\nAltera a senha do user.\
+        \nParâmetros:\
+        \n-token: str \
+        \n-email : str\
+        \n-nova_senha : str\
+        \nRetorno:\
+        \n-{"mensagem": "senha alterada com sucesso"}.\
+        \nErros:\
+        \n-406: token invalido'''
+    
+    base_toke_email = BaseEmailToken(token=base.token) 
+
+    result = await Comfirmar_Email(base_toke_email, session)
+
+    result.get("mensagem")
+
+    if result is not None:
+        query = session.query(Usuario).filter_by(email = base.email).first()
+
+        query.nova_senha(base.nova_senha) # type: ignore
+        session.commit()
+
+    return {"mensagem": "senha alterada com sucesso"}
 #!SECTION

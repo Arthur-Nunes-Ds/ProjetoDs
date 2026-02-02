@@ -71,5 +71,7 @@ if not SENHA_DE_APP or not SENHA_DE_APP.strip():
 if not EMAIL_GOOGLE or not EMAIL_GOOGLE.strip():
     class EmailGoogle(Exception): pass
     raise EmailGoogle('O sistema precisa da EMAIL_GOOGLE do Google no .env com um valor válido')
-    
+
+EMAIL_REDE = getenv("EMAIL_REDE", None)
+
 #!SECTION

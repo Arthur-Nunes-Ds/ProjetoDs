@@ -61,4 +61,9 @@ class BaseEditarUsuario(BaseModel):
     #Igualar a None gera um campo opcional, ou seja, se ele não for passado, o código continua
     nome: str | None = None
     senha: str | None = None
+
+class BaseEsqueciSenha(BaseModel):
+    token: str
+    email : str
+    nova_senha : str
 #!SECTION

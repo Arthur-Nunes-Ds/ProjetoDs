@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from src.config import EMAIL_GOOGLE,SENHA_DE_APP
+from src.config import EMAIL_GOOGLE,SENHA_DE_APP, EMAIL_REDE
 from src.conection import get_session
 from src.model import (Usuario,Token, NotUser, InvalidTokenEmail, 
-                       BaseEmailSend, BaseEmailToken,TetaivasDeEmailFaill)
-from .depeds import verificar_jwt
+                       BaseEmailSend, BaseEmailToken,TetaivasDeEmailFaill, IncompletePostRequest)
 from email.message import EmailMessage
 from smtplib import SMTP_SSL
 from secrets import token_urlsafe
@@ -14,7 +13,7 @@ Rota_Email = APIRouter()
 
 #SECTION - enviar email
 @Rota_Email.post("/Enviar_Email", tags=["Public"])
-async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(get_session)):
+async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_session)):
     '''\nEnviar um Email para o User.\
         \nParâmetros:\
         \n-email : str \
@@ -25,25 +24,33 @@ async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(g
         \n-404: Cliente não cadastrado/encontrado.\
         \n-423: Envio de email exdido'''
     try:
-        query = session.query(Usuario).filter_by(email = base.email).first() # type: ignore
+        query = session.query(Usuario).filter_by(email = base.email).first() 
 
         if query is None: raise NotUser()
 
-        if query.qnt_tentativas > 4: # type: ignore
-            #isso já deleta os token atribuido ao user
-            session.delete(query)
-            session.commit()
-            raise TetaivasDeEmailFaill 
-        else:
-            query.qnt_tentativas += 1 # type: ignore
+        if bool(query.email_verificado) == False:
+            if query.qnt_tentativas > 4 : # type: ignore
+                #isso já deleta os token atribuido ao user
+                session.delete(query)
+                session.commit()
+                raise TetaivasDeEmailFaill 
+            else:
+                query.qnt_tentativas += 1 # type: ignore
 
         token = token_urlsafe(5)
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
+        #Assundo do email
         msg['Subject'] = 'Confirmação de Email'
-        msg['From'] = EMAIL_GOOGLE
+        #que vai enviar
+        if EMAIL_REDE is not None:
+            msg['From'] = f"EchoDE <{EMAIL_REDE}>"
+        else:
+            msg["From"] = EMAIL_GOOGLE
+
         msg['To'] = query.email
 
+        #htmll
         html =  f"""<!DOCTYPE html> \n 
                         <html>\n 
                         <head>\n 
@@ -58,8 +65,9 @@ async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(g
                             <div style="background-color: #ffffffa2; text-align: center; padding:1px ;border-radius: 5px;">\n
                                 <h3 style="color: #4CAF50; font-size: 24px;">{token}</h3>\n
                             </div>\n
-                            <p>Atenciosamente,\n
-                            <br>Equipe da EchoDE</p>\n
+                            <p>Esse email foi gerado altomaticamente. Não o responda.\n
+                            Atenciosamente,\n
+                            <br>Equipe da EchoDE Ecologic Tech</p>\n
                         </body>\n
                         </html>"""
 
@@ -92,6 +100,12 @@ async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(g
             status_code=status.HTTP_423_LOCKED,
             detail="Limite de Email atigindo. Refaça o cadastro"
         )
+    except IncompletePostRequest:
+        session.rollback()
+        raise HTTPException(
+            status_code= status.HTTP_424_FAILED_DEPENDENCY,
+            detail="Não foi passado nem o email nem o jwt"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -99,10 +113,10 @@ async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(g
         )
 #!SECTION
 
-#SECTION - confirma email
-@Rota_Email.post("/Fyrst_Comfirmar_Email", tags=["Public"])
-async def Fyrst_Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
-    '''\nRecebe o código do email para o user terminar de criar a conta.\
+#SECTION - 1° confirma email
+@Rota_Email.post("/Comfirmar_Email", tags=["Public"])
+async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
+    '''\nRecebe o código do email para o user confirma a conta.\
         \nParâmetros:\
         \n-token : str \
         \nRetorno:\
@@ -145,11 +159,3 @@ async def Fyrst_Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(
         )
 #!SECTION
 
-async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
-    '''\nRecebe o código do email para o user terminar de criar a conta.\
-        \nParâmetros:\
-        \n-token : str \
-        \nRetorno:\
-        \n-{'mensagem':"email confirmado com sucesso"}.\
-        \nErros:\
-        \n-406: token invalido'''

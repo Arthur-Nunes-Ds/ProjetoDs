@@ -1,25 +1,26 @@
-<h1 align="center">AAMCS</h1>
+<h1 align="center">Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE</h1>
 
 # Descrição
-O AAMCS (Api de Aplicativo de Monitoramento de Consumo Sustentável) é uma API desenvolvida em Python utilizando o framework FastAPI. Ele oferece funcionalidades para monitorar e gerenciar o consumo sustentável de recursos, permitindo a integração com aplicativos frontend.
+O AEchoDE (Api de Aplicativo de Monitoramento de Consumo Sustentável da EchoDE) é uma API desenvolvida em Python utilizando o framework FastAPI. Ele oferece funcionalidades para monitorar e gerenciar o consumo sustentável de recursos, permitindo a integração com aplicativo EchoDE.
 
 # Instalação
-Para instalar o AAMCS, siga os passos abaixo:
+Para instalar o AEchoDE, siga os passos abaixo:
 1. Clone o repositório:
    ```bash
-   git clone -b nunes https://github.com/NunesDevelloper/ProjetoDs.git AAMCS
+   git clone -b nunes https://github.com/NunesDevelloper/ProjetoDs.git AEchoDE
    ```
 2. Navegue até o diretório do projeto:
    ```bash  
-    cd AAMCS
+    cd AEchoDE
     ```
 3. Crie um ambiente virtual (opcional, mas recomendado):
+   - No Linux/MacOS use:
    ```bash
-    python -m venv .venv
+    python3 -m venv .venv
     source .venv/bin/activate
-    ```
-    No Windows use:
-    ```bash
+   ```
+   - No Windows use:
+   ```bash
     python -m venv .venv
     .venv\Scripts\activate
     ```
@@ -29,8 +30,20 @@ Para instalar o AAMCS, siga os passos abaixo:
     pip install -r requirements.txt
    ```
 
-# Para iniciar o AAMCS e nesario que todas variaveis de ambiente estejam configuradas com base no arquivo .env.example, utilize o comando abaixo:
-Atenção: deve escutar o comando:  ```python StartApi.py``` dentro do diretório raiz do projeto.
+# Configuração
+## Configuração de Variáveis de Ambiente
+Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente. Você pode usar o arquivo `.env.example` como modelo. Copie este arquivo para `.env` e ajuste os valores conforme necessário.
+## Configuração do Banco de Dados
+O AEchoDE suporta banco de dados MySQL,MariDB e Percone Server; além do SQLite(Onde não pode ser configurando). Certifique-se de que o banco de dados esteja configurado corretamente e que as credenciais estejam definidas nas variáveis de ambiente, Caso esteja utilizando o SQLite(não remendado em modo de produção), não é necessário configurar o banco de dados.
+O banco deve der um timer de em 5 minutos deletar tokens expirados e a cada 24 horas deletar os user sem confirmação de email; O banco de esatá rodando em utc+0.
+## Configuração de e-mail
+Anteção: o AEchoDE suporta apenas o envio de e-mails, não o recebimento e apenas da google( Gmail e Google Workspace ) ná hora do envio certifiquese que o email usando seja do gmail.com.
+Se você usar o serviço de Encaminhamento de emails como da cloudflare(https://developers.cloudflare.com/email-routing/?preferred-color-scheme=dark) ou semelhandes , certifique-se de preencher a varivel de ambiente `EMAIL_REDE` com email com o dns cunston proficional/pessoal.
+
+# Para iniciar o AEchoDE e nesario que todas variaveis de ambiente estejam configuradas com base no arquivo .env.example, utilize o comando abaixo para iniciar a API:
+```bash
+   python StartApi.py 
+```
 
 # Argumentos de inicialização disponíveis:
 - `--debug`: Executa em modo debug com reload automático. <br>Ex.: `python StartApi.py --debug`
@@ -44,5 +57,5 @@ O certificado tem que der o nome de `cert.pem` e a chave `key.pem`. <br>Ex.: `py
 # Documentação da API
 A documentação da API está disponível em: `http://<host>:<port>/docs` ou `https://<host>:<port>/docs` se HTTPS estiver habilitado.
 
-Substitua `<host>` e `<port>` pelos valores usados na inicialização do AAMCS.
+Substitua `<host>` e `<port>` pelos valores usados na inicialização do AEchoDE.
 
