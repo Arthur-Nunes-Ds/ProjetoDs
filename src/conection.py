@@ -12,6 +12,7 @@ else:
     
 try:
     #Cria a engine para conectar o python ao mysql
+        #assim ele jpá pega o fuso do banco 
     engine = create_engine(endereco_db) 
     #Cria uma conxeção e depois fecha a mesma conexeção
     engine.connect().close()
@@ -25,7 +26,6 @@ except OperationalError:
 #Classe base para os modelos
 Base = declarative_base()
 
-#FIXME -  deixar a seção utc 0
 #Cria a sessão para manipular a db
 Session = sessionmaker(bind=engine)
 

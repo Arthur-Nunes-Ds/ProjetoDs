@@ -1,7 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from pathlib import Path
 from src.config import EMAIL_GOOGLE,SENHA_DE_APP
 from src.conection import get_session
 from src.model import (Usuario,Token, NotUser, InvalidTokenEmail, 
@@ -46,11 +44,24 @@ async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(g
         msg['From'] = EMAIL_GOOGLE
         msg['To'] = query.email
 
-        html_path = Path('src/templates/email_send.html')
-        
-        with open(html_path, 'r', encoding='utf-8') as f: html_file = f.read()
-
-        html = html_file.format(user = query.nome, token = token)
+        html =  f"""<!DOCTYPE html> \n 
+                        <html>\n 
+                        <head>\n 
+                            <meta charset="UTF-8">\n
+                        </head>\n
+                        <!-- Arquivo Html só Para deixar o email mas bonito e com toque de proficonalismo -->\n
+                        <body style="font-family: Arial, sans-serif; padding: 20px; \n
+                        background: linear-gradient(118deg,rgba(125, 0, 251, 1) 17%,\n
+                        rgba(0, 0, 0, 1) 89%); color: azure; width: 100%; height: 300px;">\n
+                            <h1>Olá, {query.nome} !</h1>\n
+                            <p>Aqui está o código para confirma seu email:</p>\n
+                            <div style="background-color: #ffffffa2; text-align: center; padding:1px ;border-radius: 5px;">\n
+                                <h3 style="color: #4CAF50; font-size: 24px;">{token}</h3>\n
+                            </div>\n
+                            <p>Atenciosamente,\n
+                            <br>Equipe da EchoDE</p>\n
+                        </body>\n
+                        </html>"""
 
         #email mesagem, necesse caso um arquivo html
         msg.set_content(html, subtype='html')

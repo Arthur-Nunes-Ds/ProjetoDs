@@ -40,7 +40,7 @@ if __name__ == "__main__":
     paremtro.add_argument('--sqlite', action='store_true', help='Cria um sqlite "banco.db"')
     paremtro.add_argument('--https', action='store_true', help='Ativa o htpps do servido. necessario os certificados ficarem em: /cert')
     #o type -> é o tipo que precisar ser pasado e o Default é o falo padrão caso não passado
-    paremtro.add_argument('--port', type=int, default= 8000, help='Porta do SGU, o padrão: 8000')
+    paremtro.add_argument('--port', type=int, default= 8080, help='Porta do SGU, o padrão: 8000')
     paremtro.add_argument('--host', type=str, default= "localhost", help='IP do SGU, o padrão: localhost')
     #nargs -> me fala que eu posso varios paremtros como por exempl-> pip install pandas fastapi flet
         #assim tuddo isso vai ser baixodo pelo pip 

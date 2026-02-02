@@ -38,7 +38,7 @@ Atenção: deve escutar o comando:  ```python StartApi.py``` dentro do diretóri
 - `--https`: Habilita HTTPS usando `src/certs/cert.pem` e `src/certs/key.pem` se existirem. 
 O certificado tem que der o nome de `cert.pem` e a chave `key.pem`. <br>Ex.: `python StartApi.py --https`
 - `--host <endereco_ip>`: IP onde o servidor escuta (padrão: `localhost`). <br>Ex.: `python StartApi.py --host 0.0.0.0`
-- `--port <numero_porta>`: Porta onde o servidor escuta (padrão: `8000`). <br>Ex.: `python StartApi.py --port 8080`
+- `--port <numero_porta>`: Porta onde o servidor escuta (padrão: `8080`). <br>Ex.: `python StartApi.py --port 8080`
 - `--host-fronte <enderecos...>`: Lista de IPs/URLs permitidos para o frontend (padrão: `*`[qualquer um]). <br>Ex.: `python StartApi.py --host-fronte http://localhost:3000 http://192.168.1.100:3000`
 
 # Documentação da API
