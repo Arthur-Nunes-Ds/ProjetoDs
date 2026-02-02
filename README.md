@@ -59,3 +59,8 @@ A documentação da API está disponível em: `http://<host>:<port>/docs` ou `ht
 
 Substitua `<host>` e `<port>` pelos valores usados na inicialização do AEchoDE.
 
+# Licença
+Este projeto utiliza uma **Licença Personalizada de Uso Não Comercial com Exceção Comercial**.
+
+- Uso não comercial: permitido
+- Uso comercial ou público: somente com autorização do autor[LICENSE](LICENSE) para mais detalhes.
