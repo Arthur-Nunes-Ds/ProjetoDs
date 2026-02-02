@@ -63,4 +63,4 @@ Substitua `<host>` e `<port>` pelos valores usados na inicialização do AEchoDE
 Este projeto utiliza uma **Licença Personalizada de Uso Não Comercial com Exceção Comercial**.
 
 - Uso não comercial: permitido
-- Uso comercial ou público: somente com autorização do autor[LICENSE](LICENSE) para mais detalhes.
+- Uso comercial ou público: somente com autorização do autor. <br> [LICENSE](LICENSE) para mais detalhes.
