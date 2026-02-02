@@ -6,12 +6,12 @@ from jose import jwt, JWTError
 #Base para trancar rota
 oauth_schema = OAuth2PasswordBearer('/public/Logar_Conta')
 
-def verificar_toke(token: str = Depends(oauth_schema)):
+def verificar_jwt(token: str = Depends(oauth_schema)):
     try:
         #Decodifica o token para um dicionário
         dic_info_u = jwt.decode(token, str(SECRETES_KEY), ALG)
         
-        return dic_info_u 
+        return int(dic_info_u["sub"])
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -1,4 +1,4 @@
-from src.conection import Base, engine
+from src.conection import Base
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String,Boolean
 from sqlalchemy.orm import relationship
@@ -26,6 +26,14 @@ class Usuario(Base):
         passive_deletes=True
     )
 
+    metas = relationship(
+        "Meta", back_populates="usuario",cascade="all, delete",passive_deletes=True
+    )
+
+    consumo = relationship(
+        "Consumo", back_populates="usuario",cascade="all, delete",passive_deletes=True
+    )
+
     def __init__(self, nome: str, email: str, senha: str):
         self.nome = nome
         self.email = email
@@ -37,7 +45,6 @@ class Usuario(Base):
     def verificar_senha(self, senha):
         return sha256.verify(senha, self.hash_senha) # type: ignore
 
-Base.metadata.create_all(bind=engine)
 
 #SECTION - Schemas User
 #Parâmetros de como tem que ser enviado. Qualquer coisa contrária já será rejeitada automaticamente.

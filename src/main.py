@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import HOST_FRONT
-from .services import Rota_Publics, Rota_Email
+from .services import Rota_Publics, Rota_Email, Rota_Cliente
 
 app = FastAPI(title='Api do Aplicativo de Monitoramento de Consumo Sustentável')
 
@@ -44,6 +44,14 @@ app.include_router(
 app.include_router(
     Rota_Email,
     prefix='/emial',
-    tags=["Email", "Public"]
+    tags=["Email"]
+)
+#!SECTION
+
+#SECTION - cliente
+app.include_router(
+    Rota_Cliente,
+    prefix='/client',
+    tags=["Cliente"]
 )
 #!SECTION

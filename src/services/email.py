@@ -1,10 +1,12 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from pathlib import Path
 from src.config import EMAIL_GOOGLE,SENHA_DE_APP
 from src.conection import get_session
 from src.model import (Usuario,Token, NotUser, InvalidTokenEmail, 
                        BaseEmailSend, BaseEmailToken,TetaivasDeEmailFaill)
+from .depeds import verificar_jwt
 from email.message import EmailMessage
 from smtplib import SMTP_SSL
 from secrets import token_urlsafe
@@ -13,8 +15,8 @@ from datetime import datetime, timezone
 Rota_Email = APIRouter()
 
 #SECTION - enviar email
-@Rota_Email.post("/Enviar_Email")
-async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_session)):
+@Rota_Email.post("/Enviar_Email", tags=["Public"])
+async def Enviar_Email(base : BaseEmailSend | None, session: Session = Depends(get_session)):
     '''\nEnviar um Email para o User.\
         \nParâmetros:\
         \n-email : str \
@@ -25,8 +27,8 @@ async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_sess
         \n-404: Cliente não cadastrado/encontrado.\
         \n-423: Envio de email exdido'''
     try:
-        query = session.query(Usuario).filter_by(email = base.email).first()
-       
+        query = session.query(Usuario).filter_by(email = base.email).first() # type: ignore
+
         if query is None: raise NotUser()
 
         if query.qnt_tentativas > 4: # type: ignore
@@ -42,7 +44,7 @@ async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_sess
         msg = EmailMessage()
         msg['Subject'] = 'Confirmação de Email'
         msg['From'] = EMAIL_GOOGLE
-        msg['To'] = base.email
+        msg['To'] = query.email
 
         html_path = Path('src/templates/email_send.html')
         
@@ -80,7 +82,6 @@ async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_sess
             detail="Limite de Email atigindo. Refaça o cadastro"
         )
     except Exception as e:
-        print(e)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Erro aou enviar email"
@@ -88,9 +89,9 @@ async def Enviar_Email(base : BaseEmailSend, session: Session = Depends(get_sess
 #!SECTION
 
 #SECTION - confirma email
-@Rota_Email.post("/Comfirmar_Email")
-async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
-    '''\nEnviar um Email para o User.\
+@Rota_Email.post("/Fyrst_Comfirmar_Email", tags=["Public"])
+async def Fyrst_Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
+    '''\nRecebe o código do email para o user terminar de criar a conta.\
         \nParâmetros:\
         \n-token : str \
         \nRetorno:\
@@ -107,7 +108,12 @@ async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_se
         data_expire = query.data_expire.replace(tzinfo=timezone.utc)
 
         #se o data_expire estiver no passado faça ...
-        if data_expire < agora_time_utc : raise InvalidTokenEmail
+        if data_expire < agora_time_utc : 
+            try:
+                session.delete(query)
+                session.commit()
+            finally:  
+                raise InvalidTokenEmail
 
         #alteras os dados nessario no banco
         query.usuario.email_verificado = True
@@ -121,9 +127,18 @@ async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_se
 
         return {'mensagem':"email confirmado com sucesso"}
     except InvalidTokenEmail:
+        session.rollback()
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
             detail="token invalido"
         )
 #!SECTION
- 
+
+async def Comfirmar_Email(base: BaseEmailToken, session: Session= Depends(get_session)):
+    '''\nRecebe o código do email para o user terminar de criar a conta.\
+        \nParâmetros:\
+        \n-token : str \
+        \nRetorno:\
+        \n-{'mensagem':"email confirmado com sucesso"}.\
+        \nErros:\
+        \n-406: token invalido'''

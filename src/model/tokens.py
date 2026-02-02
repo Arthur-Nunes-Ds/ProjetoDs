@@ -1,4 +1,4 @@
-from src.conection import Base, engine
+from src.conection import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone, timedelta
@@ -33,4 +33,3 @@ class Token(Base):
         if token == self.token: return True
         else: return False
     
-Base.metadata.create_all(bind=engine)
