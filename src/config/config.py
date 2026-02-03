@@ -3,6 +3,7 @@ from pathlib import Path
 from urllib.parse import quote_plus
 from os import getenv
 from dotenv import load_dotenv
+from datetime import timedelta
 
 #leitura das var de ambiente
 load_dotenv()
@@ -37,10 +38,41 @@ if ALG == None:
     ALG = 'HS256'
 
 try:
-    EXPIRATION_TIMER_MINUTES = int(getenv('EXPIRATION_TIMER_MINUTES', '5'))# type: ignore
+    EXPIRATION_TIMER_JWT = int(getenv('EXPIRATION_TIMER_JWT'))# type: ignore
 except ValueError:
     print('erro na hora de carrega o tempo de exepiração do jwt o padrão dela vai ser 5 minutos')
-    EXPIRATION_TIMER_MINUTES = 5
+    EXPIRATION_TIMER_JWT = 5
+
+timer = None
+
+def tipo_de_timer(escolha: str):
+    #M -> mês | A -> Anos | D -> dias
+    #MM -> minutos | HH -> horas | SS -> segundos
+    match escolha:
+        case "M":
+            return timedelta(days=EXPIRATION_TIMER_JWT * 30)
+        case "A":
+            return timedelta(days=EXPIRATION_TIMER_JWT * 365)
+        case "D":
+            return timedelta(days=EXPIRATION_TIMER_JWT)
+        case "MM":
+            return timedelta(minutes=EXPIRATION_TIMER_JWT)
+        case "HH":
+            return timedelta(hours=EXPIRATION_TIMER_JWT)
+        case "SS":
+            return timedelta(seconds=EXPIRATION_TIMER_JWT)
+        case _:
+            raise ValueError("Você não passou o tipo do jwt")
+
+EXPIRATION_TIMER_JWT_TIPO = getenv("EXPIRATION_TIMER_JWT_TIPO")
+if EXPIRATION_TIMER_JWT_TIPO == None:
+    print("erro na hora de pega o tipode duração o padrão sera MM(minutos)")
+    EXPIRATION_TIMER_JWT_TIPO = "MM"
+else:
+    timer = tipo_de_timer(EXPIRATION_TIMER_JWT_TIPO)
+
+
+
 #!SECTION
 
 #SECTION - agr 
@@ -73,5 +105,12 @@ if not EMAIL_GOOGLE or not EMAIL_GOOGLE.strip():
     raise EmailGoogle('O sistema precisa da EMAIL_GOOGLE do Google no .env com um valor válido')
 
 EMAIL_REDE = getenv("EMAIL_REDE", None)
+#!SECTION
 
+#SECTION - toke_email
+try:
+    EXPIRATION_TIMER_MINUTES_EMAIL = int(getenv('EXPIRATION_TIMER_MINUTES_EMAIL', '5'))# type: ignore
+except ValueError:
+    print('erro na hora de carrega o tempo de exepiração do jwt o padrão dela vai ser 5 minutos')
+    EXPIRATION_TIMER_MINUTES_EMAIL = 5
 #!SECTION

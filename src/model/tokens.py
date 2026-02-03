@@ -2,7 +2,7 @@ from src.conection import Base
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone, timedelta
-from src.config import EXPIRATION_TIMER_MINUTES
+from src.config import EXPIRATION_TIMER_MINUTES_EMAIL
 
 class Token(Base):
      #nome da tabela
@@ -27,7 +27,7 @@ class Token(Base):
         self.id_user = usario_id
         #já add tempo para o token ser deletado
             #o token tem quer ser cadastrtado no fuso utc pois assim tá apra altera no banco para o mesmo fusso utc
-        self.data_expire = (datetime.now(timezone.utc)+timedelta(minutes=EXPIRATION_TIMER_MINUTES))
+        self.data_expire = (datetime.now(timezone.utc)+timedelta(minutes=EXPIRATION_TIMER_MINUTES_EMAIL))
 
     def verificar_token(self, token: str):
         if token == self.token: return True

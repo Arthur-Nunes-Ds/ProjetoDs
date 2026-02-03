@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from jose import jwt
-from datetime import datetime, timezone, timedelta
-from src.config import SECRETES_KEY,ALG,EXPIRATION_TIMER_MINUTES
+from datetime import datetime, timezone
+from src.config import SECRETES_KEY,ALG,timer
 from src.conection import get_session
 from src.model import (Usuario, BaseCriarUsuario, NotUser, 
     BaseEsqueciSenha ,SenhaInvalida, BaseEmailToken)
@@ -14,7 +14,8 @@ Rota_Publics = APIRouter()
 
 def criar_token(id_user):
     #Obtém o tempo atual e adiciona o tempo de expiração
-    dt_expi = datetime.now(timezone.utc) + timedelta(minutes=EXPIRATION_TIMER_MINUTES)
+    dt_expi = datetime.now(timezone.utc) + timer
+    print(dt_expi)
     #O dic_info está configurado com base no padrão JWT: https://www.jwt.io/
     dic_info = {'sub': str(id_user),'exp': dt_expi}
     #Cria o JWT
