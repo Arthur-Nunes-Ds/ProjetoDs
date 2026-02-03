@@ -1,12 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom'; 
-import { SiReact, SiNextdotjs, SiTypescript, SiTailwindcss, SiVite, SiNodedotjs } from 'react-icons/si';
 
+// --- CORREÇÃO DAS IMPORTAÇÕES DOS ÍCONES ---
+// Ícones do Simple Icons (Si...)
+import { SiReact, SiNextdotjs, SiTailwindcss, SiVite, SiNodedotjs, SiMysql } from 'react-icons/si';
+// Ícones do Font Awesome (Fa...)
+import { FaGitAlt, FaGithub, FaPython, FaHtml5, FaCss3Alt } from 'react-icons/fa';
+// Ícones do Remix Icons (Ri...)
+import { RiJavascriptFill } from 'react-icons/ri';
+// Ícones do VS Code (Vsc...)
 import {
   VscHome,
   VscArchive,
   VscAccount,
-  VscSettingsGear
+  VscSettingsGear,
+  VscVscode // Adicionado aqui
 } from 'react-icons/vsc';
 
 // Mantenha seus componentes que já funcionam
@@ -16,50 +24,81 @@ import Dock from '/src/components/Dock';
 import ClickSpark from '/src/components/ClickSpark';
 import FlowingMenu from '/src/components/FlowingMenu';
 
-// --- REMOVI O IMPORT DO LOGOLOOP QUEBRADO ---
-
-/* ===================== NOVO COMPONENTE DE LOOP (LOCAL) ===================== */
-// Adicionei estilos CSS para animação no final do arquivo ou via style tag aqui
+/* ===================== NOVO COMPONENTE DE LOOP (DUPLA FAIXA) ===================== */
 const TechTicker = () => {
-  const logos = [
+  // 1. Faixa Front-End
+  const frontLogos = [
     { icon: <SiReact size={40} />, name: "React" },
     { icon: <SiNextdotjs size={40} />, name: "Next.js" },
-    { icon: <SiTypescript size={40} />, name: "TypeScript" },
     { icon: <SiTailwindcss size={40} />, name: "Tailwind" },
     { icon: <SiVite size={40} />, name: "Vite" },
-    { icon: <SiNodedotjs size={40} />, name: "Node.js" },
+    { icon: <FaHtml5 size={40} />, name: "HTML5" },
+    { icon: <FaCss3Alt size={40} />, name: "CSS3" },
+    { icon: <RiJavascriptFill size={40} />, name: "JavaScript" },
   ];
 
-  // Duplicamos a lista para criar o efeito infinito
-  const infiniteLogos = [...logos, ...logos, ...logos];
+  // 2. Faixa Back-End & Tools
+  const backLogos = [
+    { icon: <SiNodedotjs size={40} />, name: "Node.js" },
+    { icon: <FaPython size={40} />, name: "Python" },
+    { icon: <SiMysql size={40} />, name: "MySQL" },
+    { icon: <FaGitAlt size={40} />, name: "Git" },
+    { icon: <FaGithub size={40} />, name: "GitHub" },
+    { icon: <VscVscode size={40} />, name: "VS Code" },
+  ];
+
+  // Duplicamos as listas para criar o efeito infinito
+  const infiniteFront = [...frontLogos, ...frontLogos, ...frontLogos, ...frontLogos];
+  const infiniteBack = [...backLogos, ...backLogos, ...backLogos, ...backLogos];
 
   return (
-    <div className="w-full bg-black py-10 border-y border-white/10 overflow-hidden relative">
-      {/* Máscaras de gradiente nas pontas para suavizar */}
-      <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-black to-transparent z-10"></div>
-      <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-black to-transparent z-10"></div>
+    <div className="w-full bg-black py-12 border-y border-white/10 overflow-hidden relative flex flex-col gap-8">
+      {/* Máscaras de gradiente nas pontas */}
+      <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-black to-transparent z-10 pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-24 h-full bg-gradient-to-l from-black to-transparent z-10 pointer-events-none"></div>
 
-      <div className="flex w-max animate-infinite-scroll">
-        {infiniteLogos.map((item, index) => (
-          <div key={index} className="mx-8 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-colors duration-300">
-            {item.icon}
-            <span className="text-xs font-mono uppercase tracking-widest opacity-0 hover:opacity-100 transition-opacity">
-              {item.name}
-            </span>
-          </div>
-        ))}
+      {/* --- FAIXA 1: FRONT-END (Esquerda) --- */}
+      <div className="relative">
+        <div className="flex w-max animate-infinite-scroll hover:pause">
+          {infiniteFront.map((item, index) => (
+            <div key={`front-${index}`} className="mx-8 flex flex-col items-center gap-2 text-gray-500 hover:text-cyan-400 transition-colors duration-300 group cursor-default">
+              {item.icon}
+              <span className="text-xs font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* --- FAIXA 2: BACK-END (Direita - Reverso) --- */}
+      <div className="relative">
+        {/* Note a classe 'animate-infinite-scroll-reverse' aqui */}
+        <div className="flex w-max animate-infinite-scroll-reverse hover:pause">
+          {infiniteBack.map((item, index) => (
+            <div key={`back-${index}`} className="mx-8 flex flex-col items-center gap-2 text-gray-500 hover:text-green-400 transition-colors duration-300 group cursor-default">
+              {item.icon}
+              <span className="text-xs font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.name}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
       
-      {/* Estilo In-line para garantir a animação sem configurar tailwind.config */}
+      {/* Estilos CSS para animação */}
       <style>{`
         @keyframes scroll {
           0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); } /* Move metade, já que duplicamos o conteúdo */
+          100% { transform: translateX(-50%); }
         }
         .animate-infinite-scroll {
-          animation: scroll 20s linear infinite;
+          animation: scroll 30s linear infinite;
         }
-        .animate-infinite-scroll:hover {
+        .animate-infinite-scroll-reverse {
+          animation: scroll 30s linear infinite reverse; /* Roda ao contrário */
+        }
+        .hover\\:pause:hover {
           animation-play-state: paused;
         }
       `}</style>
@@ -316,7 +355,9 @@ const Home = () => {
             </FadeContent>
           </section>
 
+          {/* Chamada das duas faixas rolantes */}
           <TechTicker />
+
           <FloatingDock />
           <FooterNav />
         </div>
