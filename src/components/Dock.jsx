@@ -15,7 +15,11 @@ function DockItem({ children, className = '', onClick, mouseX, spring, distance,
     return val - rect.x - baseItemSize / 2;
   });
 
-  const targetSize = useTransform(mouseDistance, [-distance, 0, distance], [baseItemSize, magnification, baseItemSize]);
+  const targetSize = useTransform(
+    mouseDistance,
+    [-distance, 0, distance],
+    [baseItemSize, magnification, baseItemSize]
+  );
   const size = useSpring(targetSize, spring);
 
   return (
@@ -33,8 +37,7 @@ function DockItem({ children, className = '', onClick, mouseX, spring, distance,
       className={`relative inline-flex items-center justify-center rounded-full bg-[#060010] border-neutral-700 border-2 shadow-md ${className}`}
       tabIndex={0}
       role="button"
-      aria-haspopup="true"
-    >
+      aria-haspopup="true">
       {Children.map(children, child => cloneElement(child, { isHovered }))}
     </motion.div>
   );
@@ -61,8 +64,7 @@ function DockLabel({ children, className = '', ...rest }) {
           transition={{ duration: 0.2 }}
           className={`${className} absolute -top-6 left-1/2 w-fit whitespace-pre rounded-md border border-neutral-700 bg-[#060010] px-2 py-0.5 text-xs text-white`}
           role="tooltip"
-          style={{ x: '-50%' }}
-        >
+          style={{ x: '-50%' }}>
           {children}
         </motion.div>
       )}
@@ -95,7 +97,9 @@ export default function Dock({
   const height = useSpring(heightRow, spring);
 
   return (
-    <motion.div style={{ height, scrollbarWidth: 'none' }} className="mx-2 flex max-w-full items-center">
+    <motion.div
+      style={{ height, scrollbarWidth: 'none' }}
+      className="mx-2 flex max-w-full items-center">
       <motion.div
         onMouseMove={({ pageX }) => {
           isHovered.set(1);
@@ -108,8 +112,7 @@ export default function Dock({
         className={`${className} absolute bottom-2 left-1/2 transform -translate-x-1/2 flex items-end w-fit gap-4 rounded-2xl border-neutral-700 border-2 pb-2 px-4`}
         style={{ height: panelHeight }}
         role="toolbar"
-        aria-label="Application dock"
-      >
+        aria-label="Application dock">
         {items.map((item, index) => (
           <DockItem
             key={index}
@@ -119,8 +122,7 @@ export default function Dock({
             spring={spring}
             distance={distance}
             magnification={magnification}
-            baseItemSize={baseItemSize}
-          >
+            baseItemSize={baseItemSize}>
             <DockIcon>{item.icon}</DockIcon>
             <DockLabel>{item.label}</DockLabel>
           </DockItem>
