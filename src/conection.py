@@ -18,7 +18,8 @@ try:
     engine.connect().close()
     #Esse erro acontece quando o SQLalchemy não consegue se conectar com a DB
     print("Server -> Conectado ao Banco MySQL")
-except OperationalError:
+except OperationalError as e:
+    print(e)
     print('Server -> não foi possivel conectar com o MysQLL.\n \
            Iniciando o o sqlite.')
     engine = create_engine("sqlite:///src/temp/banco.db")
