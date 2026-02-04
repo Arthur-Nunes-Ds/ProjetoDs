@@ -262,13 +262,13 @@ const FloatingDock = () => {
     },
     { 
       icon: <VscArchive size={18} />, 
-      label: 'Dados', 
-      onClick: () => navigate('/dados') 
+      label: 'Quem Somos', 
+      onClick: () => navigate('/quemsomos') 
     },
     { 
       icon: <VscAccount size={18} />, 
-      label: 'Quem Somos', 
-      onClick: () => navigate('/quemsomos') 
+      label: 'Conta', 
+      onClick: () => navigate('/conta') 
     },
     { 
       icon: <VscSettingsGear size={18} />, 
