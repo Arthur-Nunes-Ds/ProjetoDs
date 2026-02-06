@@ -31,7 +31,7 @@ const Login = () => {
 
     try {
       // 3. Envio para a rota específica mostrada no seu Swagger
-      const response = await axios.post('http://127.0.0.1:3000/public/Logar_Conta', formData, {
+      const response = await axios.post('http://localhost:8080/public/Logar_Conta', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }

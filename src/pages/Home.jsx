@@ -298,7 +298,7 @@ const FooterNav = () => {
                <h4 className="text-white/70 uppercase tracking-wider">Produto</h4>
                <ul className="space-y-2 text-gray-400">
                   <li><a href="#agua" className="hover:text-white">Água</a></li>
-                  <li><a href="#energia" className="hover:text-white">Energia</a></li>
+                  <li><a href="/dashboard" className="hover:text-white">Energia</a></li>
                </ul>
             </div>
             <div className="space-y-3">
