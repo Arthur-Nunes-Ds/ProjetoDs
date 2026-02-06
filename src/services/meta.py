@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.conection import get_session
-from src.model import( Meta,BaseMetaCadastro,DataInvalida )
+from src.model import(Meta, BaseMetaCadastro, DataInvalida, InvalidePost)
 from .depeds import verificar_jwt
 from datetime import date
 
@@ -10,15 +10,19 @@ Rotas_Metas = APIRouter()
 
 #FIXME - melhora o jeito que define a meta -
 #FIXME - finalizar a editar e get_meta mea_finalizada
-#FIXME - LIMITAR o usuario apra que coploque ele não coloca numero meno de zero
+
 #SECTION - definer a meta
 @Rotas_Metas.post("/Cadastrar")
 async def Cadastrar_meta(base: BaseMetaCadastro, id_user: int = Depends(verificar_jwt),session: Session = Depends(get_session)):
     '''perido tem que ser no formado YYYY-MM-DDTHH:MM:SSZ 
     \n o horario tem que ser em utc +0 \n
     YYYY => ANO | MM => MêS | DD => DIA | HH => HORA | MM => MINUTO \n
-    SS => SEGUNDO'''
+    SS => SEGUNDO
+    [YYYY, MeM, DD, HH, MM, SS]
+    '''
     try:
+        if base.valor_meta <= 0: raise InvalidePost
+
         hj = date.today()
         #passado
         #pega só o dia mes e ano
@@ -40,6 +44,17 @@ async def Cadastrar_meta(base: BaseMetaCadastro, id_user: int = Depends(verifica
 @Rotas_Metas.get("/Get_Metas")
 #Depends(verificar_jwt)
 async def Get_Metas(tipo: str | None = None, id_user: int = Depends(verificar_jwt),session: Session = Depends(get_session)):
+    '''
+        \nAltera a senha do user.\
+        \nParâmetros:\
+        \n-token: str \
+        \n-email : str\
+        \n-nova_senha : str\
+        \nRetorno:\
+        \n-{"mensagem": "senha alterada com sucesso"}.\
+        \nErros:\
+        \n-406: token invalido
+    '''
     query = session.query(Meta).filter_by(id_user = id_user).all()
     if tipo is not None:
         query = session.query(Meta).filter_by(id_user = id_user,tipo_consumo = tipo).all()
@@ -56,11 +71,15 @@ async def Get_Metas(tipo: str | None = None, id_user: int = Depends(verificar_jw
 
 @Rotas_Metas.post("/Editar")
 async def Editar_Meta(id_user: int = Depends(verificar_jwt),session: Session = Depends(get_session)):
-    ...
+    '''
+    '''
 
 
 @Rotas_Metas.delete("/Dell_Meta/{id_meta}")
 async def Dell_Meta(id_meta: int, id_user: int = Depends(verificar_jwt),session: Session = Depends(get_session)):
+    '''
+
+    '''
     session.query(Meta).filter_by(id = id_meta, id_user= id_user).delete()
     return {"mesagem": "meta finalizada"}
 

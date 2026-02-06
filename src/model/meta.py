@@ -30,8 +30,11 @@ class Meta(Base):
 #SECTION - Schema
 class BaseMetaCadastro(BaseModel):
     tipo_de_consumo : str
-    valor_meta : float
-    periodo: datetime 
+    valor_meta : float 
+    #isso força que só entra str na lista é que ela tem 6 de tamnho
+                    #[YYYY, MM, DD, HH, MM, SS]
+    periodo: datetime
+
 class BaseMetaEditar(BaseModel):
     valor_meta : float
     periodo: datetime

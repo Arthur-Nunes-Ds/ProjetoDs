@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from jose import jwt
 from datetime import datetime, timezone
-from src.config import SECRETES_KEY,ALG,timer
+from src.config import SECRETES_KEY,ALG,timer, SENHA_DB
 from src.conection import get_session
 from src.model import (Usuario, BaseCriarUsuario, NotUser, 
-    BaseEsqueciSenha ,SenhaInvalida, BaseEmailToken)
+    BaseEsqueciSenha ,SenhaInvalida, BaseEmailToken, InvalideGet)
 from .email import Comfirmar_Email
+from typing import Literal
 
 Rota_Publics = APIRouter()
 
@@ -117,3 +118,42 @@ async def esqueci_senha(base : BaseEsqueciSenha , session: Session = Depends(get
 
     return {"mensagem": "senha alterada com sucesso"}
 #!SECTION
+
+#SECTION - criar admin
+@Rota_Publics.get("/admin_magem/{oque_fazer}")
+async def admin_magem(oque_fazer : Literal["Criar","MudaSenha"] ,session: Session = Depends(get_session)):
+    '''
+        oque_fazer tem que ser igual há ["Criar","MudaSenha"] \n 
+        o MudaSenha não pode ser executado com se o admin não 
+    '''
+    try:
+        match oque_fazer:
+            case "MudaSenha":
+                query = session.query(Usuario).filter_by(email = "sudo@adm").first()
+                if query is not None:
+                    query.nova_senha(SENHA_DB) 
+                    session.commit()
+                else: raise InvalideGet
+
+            case "Criar":
+                user = Usuario("admin","sudo@adm",SENHA_DB, email_verificado= True)
+                session.add(user)
+                session.commit()
+
+            case _: raise InvalideGet
+    
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="já há um admin no sistema."
+        )
+    except InvalideGet:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="precisa prencher hás infos corretamente"
+        )
+
+#!SECTION
+

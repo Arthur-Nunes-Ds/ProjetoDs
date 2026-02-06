@@ -7,13 +7,13 @@ from .dicas_su import Dica_Su
 from .usuarios import (Usuario,BaseCriarUsuario,BaseEditarUsuario,
 BaseLogarUsuario, BaseEsqueciSenha)
 from .erros import (NotUser, SenhaInvalida, InvalidTokenEmail,TetaivasDeEmailFaill, 
-                    IncompletePostRequest,DataInvalida)
+                    IncompletePostRequest,DataInvalida,InvalidePost, InvalideGet)
 
 __all__ = ['BaseEmailSend',"Usuario","Token", "BaseCriarUsuario", 
            "BaseEditarUsuario", "NotUser", "BaseLogarUsuario", "SenhaInvalida",
            "InvalidTokenEmail","BaseEmailToken", "TetaivasDeEmailFaill", "IncompletePostRequest",
            "Consumo", "Meta", "Dica_Su", "BaseEsqueciSenha", "BaseMetaCadastro",
-           "DataInvalida"]
+           "DataInvalida", "InvalidePost", "InvalideGet"]
 
 #criar todas as tabelas
 Base.metadata.create_all(bind=engine)

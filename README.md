@@ -32,32 +32,55 @@ Para instalar o AEchoDE, siga os passos abaixo:
 
 # Configuração
 ## Configuração de Variáveis de Ambiente
-Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente. Você pode usar o arquivo `.env.example` como modelo. Copie este arquivo para `.env` e ajuste os valores conforme necessário.
+Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente. Você pode usar o arquivo "[.env.exemple](.env.exemple)" como modelo.Crie um arquivo `.env` e copie este arquivo para `.env` e ajuste os valores conforme necessário.
 ## Configuração do Banco de Dados
-O AEchoDE suporta banco de dados MySQL,MariDB e Percone Server; além do SQLite(Onde não pode ser configurando). Certifique-se de que o banco de dados esteja configurado corretamente e que as credenciais estejam definidas nas variáveis de ambiente, Caso esteja utilizando o SQLite(não remendado em modo de produção), não é necessário configurar o banco de dados.
-O banco deve der um timer de em 5 minutos deletar tokens expirados e a cada 24 horas deletar os user sem confirmação de email; O banco de esatá rodando em utc+0.
-## Configuração de e-mail
-Anteção: o AEchoDE suporta apenas o envio de e-mails, não o recebimento e apenas da google( Gmail e Google Workspace ) ná hora do envio certifiquese que o email usando seja do gmail.com.
-Se você usar o serviço de Encaminhamento de emails como da cloudflare(https://developers.cloudflare.com/email-routing/?preferred-color-scheme=dark) ou semelhandes , certifique-se de preencher a varivel de ambiente `EMAIL_REDE` com email com o dns cunston proficional/pessoal.
+Servidores de banco de dados Suportados:
+- MySQL/MariaDB/Percona Server.
+- SQLite tem suporte, **mas não recomendado para produção.**
 
-# Para iniciar o AEchoDE e nesario que todas variaveis de ambiente estejam configuradas com base no arquivo .env.example, utilize o comando abaixo para iniciar a API:
+Criação do banco automaticamente:
+
+   - Sem banco criado:
+```bash
+mysql -u <SEU_USUARIO> -p < db/init.sql
+```
+   - Com banco criado:
+```bash
+mysql -u <SEU_USUARIO> -p <NOME_DO_BANCO> < db/init.sql
+```
+Observações importantes:
+ - O banco deve:
+   - Remover tokens expirados a cada 5 minutos.
+   - Remover usuários sem confirmação de e-mail a cada 24 horas.
+Fuso horário padrão: **UTC+0**.
+
+## Configuração de e-mail
+   - Suporta apenas envio, usando **Gmail/Google Workspace.**
+   - Se usar roteamento (ex.: Cloudflare Email Routing), preencha `EMAIL_REDE` com o e-mail profissional/pessoal.
+
+# Para iniciar o AEchoDE  utilize o comando abaixo:
 ```bash
    python StartApi.py 
 ```
 
 # Argumentos de inicialização disponíveis:
-- `--debug`: Executa em modo debug com reload automático. <br>Ex.: `python StartApi.py --debug`
-- `--sqlite`: Cria/usa o arquivo `banco.db` (SQLite) em vez do banco padrão. <br>Ex.: `python StartApi.py --sqlite`
-- `--https`: Habilita HTTPS usando `src/certs/cert.pem` e `src/certs/key.pem` se existirem. 
-O certificado tem que der o nome de `cert.pem` e a chave `key.pem`. <br>Ex.: `python StartApi.py --https`
-- `--host <endereco_ip>`: IP onde o servidor escuta (padrão: `localhost`). <br>Ex.: `python StartApi.py --host 0.0.0.0`
-- `--port <numero_porta>`: Porta onde o servidor escuta (padrão: `8080`). <br>Ex.: `python StartApi.py --port 8080`
-- `--host-fronte <enderecos...>`: Lista de IPs/URLs permitidos para o frontend (padrão: `*`[qualquer um]). <br>Ex.: `python StartApi.py --host-fronte http://localhost:3000 http://192.168.1.100:3000`
+- `--debug`: Executa em modo debug com reload automático(casso o fastapi trava ele continua execuntado normalmente). <br>Ex.: `python StartApi.py --debug`
+- `--sqlite`: Cria/usa o arquivo `banco.db` (SQLite) em vez do banco padrão. <br>
+Ex.: `python StartApi.py --sqlite`
+- `--https`: Habilita HTTPS usando `src/certs/cert.pem` e `src/certs/key.pem` se existirem. <br>
+O certificado tem que der o nome de `cert.pem` e a chave `key.pem`. <br>
+Ex.: `python StartApi.py --https`
+- `--host <endereco_ip>`: IP onde o servidor escuta <br> (padrão: `localhost`). <br>
+Ex.: `python StartApi.py --host 0.0.0.0`
+- `--port <numero_porta>`: Porta onde o servidor escuta <br> (padrão: `8080`). <br>
+Ex.: `python StartApi.py --port 8080`
+- `--host-fronte <enderecos...>`: Lista de IPs/URLs permitidos para o frontend <br>
+(padrão: `*`[qualquer um]) <br>
+Ex.: `python StartApi.py --host-fronte http://localhost:3000 http://192.168.1.100:3000` <br>
+**Atenção:** essa linha mal configurada pode dar erro de CORS no frontend.
 
 # Documentação da API
-A documentação da API está disponível em: `http://<host>:<port>/docs` ou `https://<host>:<port>/docs` se HTTPS estiver habilitado.
-
-Substitua `<host>` e `<port>` pelos valores usados na inicialização do AEchoDE.
+A documentação da API está disponível em: `http://<host>:<port>/docs` ou `https://<host>:<port>/docs`(se HTTPS estiver habilitado).
 
 # Licença
 Este projeto utiliza uma **Licença Personalizada de Uso Não Comercial com Exceção Comercial**.

@@ -15,6 +15,7 @@ class Token(Base):
     """ondelete fala caso o pai(usuario) seja deletado o que ele deve fazer 
         CASCADE => deleta o atributo filho(token) tambe"""
     id_user = Column(Integer, ForeignKey('USUARIO.id', ondelete="CASCADE"), nullable=False)
+    criado_em = Column(DateTime)
 
     #aponta para o sqlalchemy que o Token e o Usuario estão elacionando faciliando as query
     usuario = relationship(

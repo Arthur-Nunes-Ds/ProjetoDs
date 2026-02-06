@@ -8,7 +8,8 @@ from .services import Rota_Publics, Rota_Email, Rota_Cliente, Rotas_Metas
 app = FastAPI(title='Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE Ecologic Tech',
     description = "O AEchoDE (Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE) é uma API \
     desenvolvida em Python utilizando o framework FastAPI. Ele oferece funcionalidades para monitorar e gerenciar \
-    o consumo sustentável de recursos, permitindo a integração com aplicativo EchoDE.",
+    o consumo sustentável de recursos, permitindo a integração com aplicativo EchoDE. \n \
+    \nPara Mais informação acesse a [github do projeto](https://github.com/NunesDevelloper/ProjetoDs/tree/nunes).",
     version="0.2.2")
 
 #Configuração de CORS (Cross-Origin Resource Sharing) -> isso permite que o backend

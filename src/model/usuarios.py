@@ -1,8 +1,9 @@
 from src.conection import Base
 from pydantic import BaseModel
-from sqlalchemy import Column, Integer, String,Boolean
+from sqlalchemy import Column, Integer, String,Boolean, DateTime
 from sqlalchemy.orm import relationship
 from passlib.hash import sha256_crypt as sha256
+from datetime import datetime, timezone
 
 class Usuario(Base):
     #nome da tabela
@@ -12,9 +13,10 @@ class Usuario(Base):
     nome = Column(String(200), nullable=False)
     email = Column(String(200), unique=True, nullable=False)
     #name => nomeia o nome da tabela dentro da db   
-    hash_senha = Column(String(255), nullable=True, name="senha")
+    hash_senha = Column(String(255), nullable=False, name="senha")
     qnt_tentativas = Column(Integer, default=0)
     email_verificado = Column(Boolean, default=False)
+    criado_em = Column(DateTime)
     
     #aponta para o sqlalchemy que o Token e o Usuario estão elacionando faciliando as query
     tokens = relationship(
@@ -27,23 +29,34 @@ class Usuario(Base):
     )
 
     metas = relationship(
-        "Meta", back_populates="usuario",cascade="all, delete",passive_deletes=True
+        "Meta", 
+        back_populates="usuario",
+        cascade="all, delete",
+        passive_deletes=True
     )
 
     consumo = relationship(
-        "Consumo", back_populates="usuario",cascade="all, delete",passive_deletes=True
+        "Consumo", 
+        back_populates="usuario",
+        cascade="all, delete",
+        passive_deletes=True
     )
 
-    def __init__(self, nome: str, email: str, senha: str):
+    def __init__(self, nome: str, email: str, senha: str, email_verificado : bool = False):
         self.nome = nome
         self.email = email
         self.hash_senha = sha256.encrypt(senha)
+        self.email_verificado = email_verificado
+        self.criado_em = datetime.now(timezone.utc)
 
     def nova_senha(self, senha):
         self.hash_senha= sha256.encrypt(senha)
 
     def verificar_senha(self, senha):
         return sha256.verify(senha, self.hash_senha) # type: ignore
+
+    
+
 
 
 #SECTION - Schemas User
