@@ -1,16 +1,57 @@
+from sys import exit
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from src.config import HOST_FRONT
-from .services import Rota_Publics, Rota_Email, Rota_Cliente, Rotas_Metas
+from src.routes import manger_route as mr
+from src.services import admin_create, erros
+from src.conection import get_sesion
+
+#A "vida" da api -> configuração quando vc abre pela 1° fez a api ou fecha ela
+#Linck da doc que fala mais sobre isso https://fastapi.tiangolo.com/advanced/events/
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        #pega um seção especifica
+        session = next(get_sesion())
+        admin_create(session)
+    except erros.DuplicationUser: session.close()
+    except erros.ErroInesperado:
+        session.rollback()
+        print("Server -> algo deu erra ao criar o admin. Finalizando a API")
+        #finaliza a API
+        exit(1)
+    finally:
+        #finaliza essa seção
+        session.close()
+    
+    yield
 
 #info da api
-app = FastAPI(title='Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE Ecologic Tech',
+app = FastAPI(
+    lifespan=lifespan,
+    title='Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE Ecologic Tech',
     description = "O AEchoDE (Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE) é uma API \
     desenvolvida em Python utilizando o framework FastAPI. Ele oferece funcionalidades para monitorar e gerenciar \
     o consumo sustentável de recursos, permitindo a integração com aplicativo EchoDE. \n \
     \nPara Mais informação acesse a [github do projeto](https://github.com/NunesDevelloper/ProjetoDs/tree/nunes).",
-    version="0.2.2")
+    version="0.2.2", 
+    openapi_tags=[
+        {
+            "name": "Public",
+            "description": """
+            Operações relacionadas aos usuários sem estar logado. \n
+            """
+        },
+        {
+            "name": "Cliente",
+            "description": """
+            Operações relacionadas aos usuários. Permite consultar, editar e deletar contas de usuário. \n
+            Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
+            """
+        },
+    ]
+)
 
 #Configuração de CORS (Cross-Origin Resource Sharing) -> isso permite que o backend
     #se comunique com o frontend, mesmo que estejam em domínios diferentes.
@@ -26,46 +67,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#include_in_schema => indica se a rota será exibida no /docs ou não.
-    #O padrão é que ela será exibida.
-@app.get('/', include_in_schema=False)
-def home_to_doc():
-    #Toda vez que o usuário acessar essa rota, ele será redirecionado
-    #automaticamente para /docs.
-    return RedirectResponse(url='/docs')
 
-#SECTION public
-app.include_router(
-    #Todas as rotas deste grupo começarão com /public.
-    Rota_Publics,
-    #Define o prefixo do endpoint. Para qualquer função neste roteador,
-    #o caminho ficará assim: /public/endpoint — o endpoint pode mudar, mas /public não.
-    prefix='/public',
-    #Organiza as rotas deste grupo na documentação (/docs).
-    tags=["Public"]
-)
-#!SECTION
+app.include_router(mr)
 
-#SECTION - email
-app.include_router(
-    Rota_Email,
-    prefix='/emial',
-    tags=["Email"]
-)
-#!SECTION
-
-#SECTION - cliente
-app.include_router(
-    Rota_Cliente,
-    prefix='/client',
-    tags=["Cliente"]
-)
-#!SECTION
-
-#SECTION - Metas
-app.include_router(
-    Rotas_Metas,
-    prefix="/metas",
-    tags=["Metas"]
-)
-#!SECTION

@@ -1,43 +1,55 @@
 from src.conection import Base
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from pydantic import BaseModel
 from datetime import datetime
 
 class Meta(Base):
-    #nome da tabela
     __tablename__ = "META"
 
-    id = Column(Integer, primary_key=True)
-    tipo_consumo = Column(String(255), nullable=False)
-    valor_meta = Column(Float, nullable=False)
-    periodo = Column(DateTime, nullable=False)
-    #Fk para o código de ralacionamento
-    id_user = Column(Integer, ForeignKey('USUARIO.id', ondelete="CASCADE"), nullable=False)
+    _id = Column(Integer, primary_key=True, name="id")
+    _valor_meta = Column(Float, nullable=False, name="valor_meta")
+    _periodo = Column(DateTime, nullable=True, name="periodo")
+    _USUARIO_id = Column(Integer, ForeignKey('USUARIO.id', ondelete="CASCADE"), 
+                         nullable=False, name="USUARIO_id")
+    _TIPO_CONSUMO_id = Column(Integer, ForeignKey('TIPO_CONSUMO.id', ondelete="CASCADE"), 
+                        nullable=False, name="TIPO_CONSUMO_id")
+        
+    tipo_consumo = relationship(
+        "TipoConsumo", 
+        back_populates="meta",
+    )
 
     usuario = relationship(
         "Usuario",
-        back_populates="metas"
+        back_populates="meta"
     )
 
-    def __init__(self, tipo_consumo: str,valor_meta: float, periodo: datetime, usario_id :int):
-        self.tipo_consumo = tipo_consumo
-        self.valor_meta = valor_meta
-        self.periodo = periodo
-        self.id_user = usario_id
+    def __init__(self, valor_meta: float, periodo : datetime
+                 ,TIPO_CONSUMO_id: int,USUARIO_id: int) -> None: 
+        self._valor_meta = valor_meta
+        self._periodo = periodo
+        self._USUARIO_id = USUARIO_id
+        self._TIPO_CONSUMO_id = TIPO_CONSUMO_id
 
+    @property 
+    def id(self) -> int: return self._id 
 
-#SECTION - Schema
-class BaseMetaCadastro(BaseModel):
-    tipo_de_consumo : str
-    valor_meta : float 
-    #isso força que só entra str na lista é que ela tem 6 de tamnho
-                    #[YYYY, MM, DD, HH, MM, SS]
-    periodo: datetime
+    @property
+    def tipoConsumoId(self) -> int: return self._TIPO_CONSUMO_id 
 
-class BaseMetaEditar(BaseModel):
-    valor_meta : float
-    periodo: datetime
-    id: int
+    @property
+    def UsuarioID(self) -> int: return self._USUARIO_id 
 
-#!SECTION
+    @property
+    def valorMeta(self) ->float: return self._valor_meta
+
+    @valorMeta.setter
+    def valorMeta(self, new_valor: float) -> None: 
+        self._valor_meta = new_valor
+
+    @property
+    def periodo(self) -> datetime: return self._periodo
+
+    @periodo.setter
+    def periodo(self, new_dt: datetime) -> None: self._periodo = new_dt
+

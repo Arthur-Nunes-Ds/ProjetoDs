@@ -1,19 +1,12 @@
 from src.conection import Base, engine
-from .email_Schemas import BaseEmailSend,BaseEmailToken
-from .tokens import Token
+from .usuario import Usuario
+from .tipo_consumo import TipoConsumo
+from .dica_sustentavel import DicaSustentavel
+from .meta import Meta
 from .consumo import Consumo
-from .meta import Meta,BaseMetaCadastro
-from .dicas_su import Dica_Su
-from .usuarios import (Usuario,BaseCriarUsuario,BaseEditarUsuario,
-BaseLogarUsuario, BaseEsqueciSenha)
-from .erros import (NotUser, SenhaInvalida, InvalidTokenEmail,TetaivasDeEmailFaill, 
-                    IncompletePostRequest,DataInvalida,InvalidePost, InvalideGet)
 
-__all__ = ['BaseEmailSend',"Usuario","Token", "BaseCriarUsuario", 
-           "BaseEditarUsuario", "NotUser", "BaseLogarUsuario", "SenhaInvalida",
-           "InvalidTokenEmail","BaseEmailToken", "TetaivasDeEmailFaill", "IncompletePostRequest",
-           "Consumo", "Meta", "Dica_Su", "BaseEsqueciSenha", "BaseMetaCadastro",
-           "DataInvalida", "InvalidePost", "InvalideGet"]
+__all__ = ["Usuario", "TipoConsumo", "DicaSustentavel",
+           "Meta", "Consumo"]
 
 #criar todas as tabelas
 Base.metadata.create_all(bind=engine)

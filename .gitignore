@@ -125,8 +125,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
-.venv_senai
+.venv*
 env/
 venv/
 ENV/
@@ -175,3 +174,13 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+
+.vscode*
+
+#arquivos de certificados(https)/temp
+src/certs/cert.pem
+src/certs/key.pem
+
+src/temp/.sgu_config.json
+src/temp/banco.db

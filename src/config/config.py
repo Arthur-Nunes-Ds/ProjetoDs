@@ -80,6 +80,10 @@ else:
 DEBUG = False
 SQLITE = False
 HOST_FRONT = ['*']
+POSTGRE = False
+HOST = 'localhost'
+PORT = 8080
+HTTPS = False
 
 #tenta ler do arquivo temporário
 config_file = Path('src/temp/.sgu_config.json')
@@ -89,6 +93,12 @@ if config_file.exists():
         DEBUG = dados.get('DEBUG')
         SQLITE = dados.get('SQLITE')
         HOST_FRONT = dados.get('HOST_FRONT')
+        POSTGRE = dados.get("POSTGRE")
+        HOST = dados.get("HOST")
+        PORT = dados.get("PORT")
+        HTTPS = dados.get("HTTPS")
+
+
 #!SECTION
 
 
@@ -114,3 +124,12 @@ except ValueError:
     print('erro na hora de carrega o tempo de exepiração do jwt o padrão dela vai ser 5 minutos')
     EXPIRATION_TIMER_MINUTES_EMAIL = 5
 #!SECTION
+
+#SECTION - admin
+USER_ADMIN = getenv('USER_ADMIN')
+SENHA_ADMIN = getenv('SENHA_ADMIN')
+if (not USER_ADMIN or not USER_ADMIN.strip()) or (not SENHA_ADMIN or not SENHA_ADMIN.strip()):
+    class AmindError(Exception): pass
+    raise AmindError('O sistema precisa da SENHA_ADMIN e/ou USER_ADMIN do .env com um valor válido')
+#!SECTION
+

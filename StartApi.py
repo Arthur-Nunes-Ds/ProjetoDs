@@ -1,13 +1,14 @@
+#config do "unicover"
 if __name__ == "__main__":
     from json import dump
     from pathlib import Path
     from argparse import ArgumentParser
-    from src.conection import engine
     from time import sleep as delay
     import atexit
 
     #para deletar o json_sqlite apos ser o servidor se encerado
     def dell_json_sqlite():
+        from src.conection import engine
         json = Path('src/temp/.sgu_config.json')
         slqlite = Path('src/temp/banco.db')
         try:
@@ -15,7 +16,7 @@ if __name__ == "__main__":
             engine.dispose()
             #espere para garantir que fechou todas conexeção do banco
             delay(0.5)
-
+            
             if json.exists():
                 #unlink deleta o arvivo <- isso fica mas versatios para os
                 json.unlink()
@@ -37,8 +38,10 @@ if __name__ == "__main__":
     paremtro = ArgumentParser(description='Inicia o servidor SGU')
     #Passo o argumento de inicilização, se o paremetro for passado ele e lido como true, e um help para que ele server
     paremtro.add_argument('--debug', action='store_true', help='Executa em modo debug')
-    paremtro.add_argument('--sqlite', action='store_true', help='Cria um sqlite "banco.db"')
     paremtro.add_argument('--https', action='store_true', help='Ativa o htpps do servido. necessario os certificados ficarem em: /cert')
+    paremtro.add_argument('--sqlite', action='store_true', help='Cria um sqlite "banco.db"')
+    paremtro.add_argument('--postgre', action='store_true', help='Cria um sqlite "banco.db"')
+    
     #o type -> é o tipo que precisar ser pasado e o Default é o falo padrão caso não passado
     paremtro.add_argument('--port', type=int, default= 8080, help='Porta do SGU, o padrão: 8080')
     paremtro.add_argument('--host', type=str, default= "localhost", help='IP do SGU, o padrão: localhost')
@@ -51,7 +54,10 @@ if __name__ == "__main__":
     
     #add um json temp só para no modo de reload ele não fica redefinindo toda hora
     with open('src/temp/.sgu_config.json', 'w') as f:
-        dump({'DEBUG': args.debug, 'SQLITE': args.sqlite, 'HOST_FRONT': args.host_fronte}, f)
+        dump({'DEBUG': args.debug, 'SQLITE': args.sqlite, 
+              'HOST_FRONT': args.host_fronte, "POSTGRE":args.postgre,
+              'HOST': args.host, 'PORT': args.port,
+              'HTTPS': args.https}, f)
 
     _ssl_certfile = None
     _ssl_keyfile = None
@@ -76,4 +82,5 @@ if __name__ == "__main__":
     else:
         print('por motivos de seguranção o código não sera executado em modo de produção')
         uvicorn.run("src.main:app", host=args.host ,port=args.port, reload=True, ssl_certfile=_ssl_certfile, ssl_keyfile=_ssl_keyfile)
+
 

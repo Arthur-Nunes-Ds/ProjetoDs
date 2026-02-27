@@ -1,1 +1,1 @@
-{"DEBUG": true, "SQLITE": false, "HOST_FRONT": ["*"]}
+{"DEBUG": true, "SQLITE": false, "HOST_FRONT": ["*"], "POSTGRE": true, "HOST": "localhost", "PORT": 8080, "HTTPS": false}
