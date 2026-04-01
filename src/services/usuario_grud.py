@@ -1,15 +1,17 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.model import Usuario
+from src.config import USER_ADMIN
 from .erros import DuplicationUser, RequestInvalida ,NoteUser, SenhaInvalida, ErroInesperado, DnsEmailNotExiste
 from .jwt import criar_token
 from .email import is_valido_dns
 
 def criar_conta(Base: object, session : Session) -> dict:
     try:
-        if is_valido_dns(Base.email) == False: raise DnsEmailNotExiste()
+        if is_valido_dns(Base.email) == False: raise DnsEmailNotExiste()  # type: ignore
 
-        user = Usuario(Base.nome, Base.email ,Base.senha)
+        user = Usuario(Base.nome, Base.email ,Base.senha) # type: ignore
+
         session.add(user)
         session.commit()
         return {'mensagem': 'cliente criado com sucesso'}
@@ -26,14 +28,15 @@ def criar_conta(Base: object, session : Session) -> dict:
     
 def logar_conta(Base: object, session: Session) -> dict :
     try:    
-        query = session.query(Usuario).filter_by(_email = Base.username, _email_verificado = True).first()
+        query = session.query(Usuario).filter_by(_email = Base.username, _email_verificado = True).first()  # type: ignore
+
 
         if query is None: raise NoteUser(session)
             
-        if query.verificarSenha(Base.password) and query.nome != "admin": 
+        if query.verificarSenha(Base.password) and query.nome != USER_ADMIN:  # type: ignore
             _jwt = criar_token(query.id)
         
-        elif query.verificarSenha(Base.password) and query.nome == "admin":
+        elif query.verificarSenha(Base.password) and query.nome == USER_ADMIN: # type: ignore
             _jwt = criar_token(query.id, is_admin= True)
 
         else: raise SenhaInvalida(session)
@@ -68,16 +71,16 @@ def alterar_dados(id: int, Base : object, session: Session) -> dict:
         query = session.query(Usuario).filter_by(_id = id).first()
 
         if query:
-            if Base.senha != None :
-                query.novaSenha(Base.senha)
+            if Base.senha != None :  # type: ignore
+                query.novaSenha(Base.senha)  # type: ignore
                 
-            if Base.nome != None:
-                query.nome = Base.nome
+            if Base.nome != None: # type: ignore
+                query.nome = Base.nome # type: ignore
 
-            if Base.nome is None and Base.senha is None:
+            if Base.nome is None and Base.senha is None: # type: ignore
                 raise RequestInvalida(session)
 
-        else: raise NoteUser
+        else: raise NoteUser(session)
 
         session.commit()
         return {'mensagem': 'cliente editado com sucesso.'}

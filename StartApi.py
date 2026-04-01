@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         print("\nServidor encerrado. Arquivo de config/temporario removido.")
 
-    #Registra para quando o programa fechar (qualquer motivo) ele támbe já fecha o programa
+    #Registra para quando o programa fechar (qualquer motivo) ele támbe já  fecha o programa
     atexit.register(dell_json_sqlite)
 
     #Cria uma pase para o main.py aceitar comando de incialicação como --debug, --port, etc.

@@ -21,11 +21,11 @@ def is_valido_dns(email: str) -> bool:
 
 async def enviar_email(base: object, session : Session)-> dict :
     try:
-        query = session.query(Usuario).filter_by(_email = base.email).first() 
+        query = session.query(Usuario).filter_by(_email = base.email).first()  # type: ignore
 
         if query is None : raise NoteUser(session)
 
-        jwt = criar_token(int(query.id), is_login = false)
+        jwt = criar_token(int(query.id), is_login = False)
 
         #REVIEW - estudar junto com front qual seria a melhor opeção
         htt = "https" if HTTPS else "http"
@@ -78,19 +78,19 @@ async def enviar_email(base: object, session : Session)-> dict :
     except(NoteUser): raise
 
     except smtplib.SMTPAuthenticationError:
-        raise AutStmpServer(session, erro)
+        raise AutStmpServer(session, erro) # type: ignore
 
     except (smtplib.SMTPServerDisconnected,smtplib.SMTPConnectError):
-        raise StmpIndisponivel(session, erro)
+        raise StmpIndisponivel(session, erro) # type: ignore
     
     except Exception as erro:
-        raise ErroInesperado(session, erro)
+        raise ErroInesperado(session, erro) # type: ignore
 
 def verificar_email(token: str, session: Session) -> dict:
     try:
-       id, is_email, _ = verificar_jwt(token)
+       id, is_login, _ = verificar_jwt(token)
 
-       if is_email == False : raise JwtNotEmail(session)
+       if is_login == True : raise JwtNotEmail(session)
 
        query = session.query(Usuario).filter_by(_id = id).first()
         

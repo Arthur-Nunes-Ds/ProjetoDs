@@ -16,6 +16,10 @@ class BaseEditarUsuarioi(BaseModel):
     nome: str | None = None
     senha: str | None = None
 
+class BaseEditarUsuarioiAdmin(BaseModel):
+    id: int
+    nome: str 
+
 class ResponseDadosUser(BaseModel):
     #isso server como uma reprecentação de -> {}
     class DicReponse(BaseModel):
@@ -24,5 +28,15 @@ class ResponseDadosUser(BaseModel):
         criado_em: datetime
 
     mensagem: DicReponse
+
+class ResponseAllUser(BaseModel):
+    class DicReponse(BaseModel):
+        id:int
+        nome: str
+        email: str
+        email_verificado: bool
+        criado_em: datetime
+    
+    mensagem: list[DicReponse]
 
 class VerificarEmail(BaseModel): toke: str

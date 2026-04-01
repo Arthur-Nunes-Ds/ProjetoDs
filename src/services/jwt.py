@@ -27,10 +27,10 @@ def verificar_jwt(token: str) -> tuple[int, bool, bool]:
     try:
         dict_info = jwt.decode(token, str(SECRETES_KEY), str(ALG))
         id = int(dict_info['sub'])
-        is_email = bool(dict_info['is_login'])
+        is_login = bool(dict_info['is_login'])
         is_admin = bool(dict_info["is_admin"])
-
-        return id, is_email, is_admin
+        print(is_login)
+        return id, is_login, is_admin
     
     except JWTError:
         raise JwtInvalido()
@@ -45,7 +45,7 @@ def verificar_jwt_user(token = Depends(oauth_schema)) -> int:
         if is_login == True: 
 
             if is_admin == True: raise AdminActionNotAllowed()
-            else: int(id)
+            else: return int(id)
 
         else: raise JwtInvalido()
 

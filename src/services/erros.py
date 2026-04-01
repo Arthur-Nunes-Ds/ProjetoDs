@@ -19,6 +19,15 @@ class NoteUser(HTTPException):
             detail="Não há User Verificado com esse Email"
         )
 
+class NotDica(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não há Dicas Cadastrada com esse id"
+        )
+
 class SenhaInvalida(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
@@ -81,7 +90,7 @@ class DnsEmailNotExiste(HTTPException):
         )
 
 class RequestInvalida(HTTPException):
-    def __init__(self, session: Session = None):
+    def __init__(self, session: Session | None = None):
         
         if session is not None: session.rollback()
 
@@ -98,6 +107,16 @@ class AdminActionNotAllowed(HTTPException):
             detail= "Essa opeção não pode excutar por admin."
         )
 
+class CannotChangeAdmin(HTTPException):
+    def __init__(self, session: Session ):
+
+        session.rollback()
+
+        super().__init__(
+            status_code=403,
+            detail= "Não se pode alterar um admin"
+        )
+
 class JustAdmin(HTTPException):
     def __init__(self):
         super().__init__(
@@ -105,3 +124,12 @@ class JustAdmin(HTTPException):
             detail= "Essa opeção só pode ser excutada por admin."
         )
         
+class BeadRequeste(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Falata requisto'
+        )
+

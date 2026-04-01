@@ -24,10 +24,10 @@ class DicaSustentavel(Base):
         self._TIPO_CONSUMO_id = TIPO_CONSUMO_id
 
     @property 
-    def id(self) -> int: return self._id # pyright: ignore[reportUndefinedVariable]
+    def id(self) -> int: return self._id # type: ignore
 
     @property
-    def TIPO_CONSUMO_id(self) -> int: return self._TIPO_CONSUMO_id # pyright: ignore[reportUndefinedVariable]
+    def TIPO_CONSUMO_id(self) -> int: return self._TIPO_CONSUMO_id # type: ignore
 
     @property
     def descricao(self) -> str: return str(self._descricao)

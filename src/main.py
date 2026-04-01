@@ -50,6 +50,14 @@ app = FastAPI(
             Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
             """
         },
+        {
+            "name": "Admin",
+            "description":"""
+             Operações relacionadas ao Admin serão substuita por uma ia,\n \
+            admin ele é criado altomaticamente com base nas var de abiente do sistema. \n \
+            Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
+            """
+        }
     ]
 )
 

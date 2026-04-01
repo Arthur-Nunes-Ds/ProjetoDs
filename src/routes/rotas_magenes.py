@@ -2,7 +2,7 @@ from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
 from .publics import Rotas_Publics
 from .user import Rotas_User
-from .admin import Rota_t
+#from .admin import Rota_Admin
 from src.schemas import Reposne500
 
 manger_route = APIRouter(responses={
@@ -31,6 +31,10 @@ manger_route.include_router(
     tags=["Cliente"]
 )
 
-manger_route.include_router(
-    Rota_t
-)
+"""manger_route.include_router(
+    Rota_Admin,
+    prefix="/admin",
+    tags=["Admin"]
+)"""
+
+    

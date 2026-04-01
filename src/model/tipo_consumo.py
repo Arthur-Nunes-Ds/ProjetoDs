@@ -38,7 +38,7 @@ class TipoConsumo(Base):
         self._unidade_medida = unidade_medida
 
     @property
-    def id(self) -> int: return self._id  # pyright: ignore[reportUndefinedVariable]
+    def id(self) -> int: return self._id  # pyright: ignore
 
     @property 
     def nome(self) -> str: return str(self._nome)

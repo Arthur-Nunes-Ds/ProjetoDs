@@ -22,7 +22,6 @@ Rotas_User = APIRouter(
 async def Dados_User(id: int = Depends(verificar_jwt_user), 
                      session: Session = Depends(get_sesion)):
     """\n Pega dados do user"""
-    
     return dados_user(id, session)
 
 @Rotas_User.delete("/Del_User",

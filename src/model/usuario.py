@@ -48,7 +48,7 @@ class Usuario(Base):
     def email(self) -> str: return self._email # type: ignore
 
     @property
-    def criado_em(self) -> DateTime: return self._criado_em
+    def criado_em(self) -> DateTime: return self._criado_em # type: ignore
 
     #NOTE - propriedades que podem ser edida
     @property
@@ -61,7 +61,7 @@ class Usuario(Base):
     def email_verificado(self) -> bool: return bool(self._email_verificado)
     
     @email_verificado.setter
-    def email_verificado(self, status : bool = True) -> bool: 
+    def email_verificado(self, status : bool = True) -> None: 
         self._email_verificado = status
 
     #NOTE - Como não há utilidade de usar o hash da senha fora da class

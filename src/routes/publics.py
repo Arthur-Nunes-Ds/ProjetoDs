@@ -23,7 +23,7 @@ Rotas_Publics = APIRouter()
                               }
                     })
 async def Criar_Conta(base: BaseCriarUsuario,
-                      session: Session = Depends(get_sesion),):
+                      session: Session = Depends(get_sesion)):
     #documentação para de como usar há api
     """\nCria um novo cliente no sistema."""
     
@@ -68,7 +68,6 @@ async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(),
                            "description":"Esse JWT não é valido para essa operação."
                        }
                    })
-
 async def Verificar_Email(token : str, session: Session = Depends(get_sesion)):
    '''\nVerifica o linck(jwt) do email do user.'''
 
