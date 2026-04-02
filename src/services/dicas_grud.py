@@ -1,42 +1,43 @@
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 from src.model import DicaSustentavel
-from .erros import ErroInesperado,BeadRequeste,NotDica
+from .erros import BeadRequeste, DuplicationTipo, ErroInesperado, NotDica, DuplicationConsumo
 
-#FIXME - add uma ia para deixar as dicas pernalizada para o usuario com base na meta
 def criar_dica(session: Session, Base: object) -> dict:
     try:
-        #**Base.model_dump() -> mesma coisa de fazer manalmente: base.nome ...
-        dicas = DicaSustentavel(**Base.model_dump())  # type: ignore
-        
-        session.add(dicas)
+        dica = DicaSustentavel(Base.nome, Base.descricao, Base.TIPO_CONSUMO_id)  # type: ignore
+
+        session.add(dica)
         session.commit()
-        
-        return {"mensagem":"dicas criadas"}
 
-    except Exception as e:
-        raise ErroInesperado(e, session)
+        return {"mensagem": "dica criada com sucesso"}
 
-def editar_dica(session: Session, Base: object, id: int) ->  dict:
+    except IntegrityError: raise DuplicationConsumo(session)
+
+    except Exception as e:raise ErroInesperado(e, session)
+
+def editar_dica(session: Session, Base: object, id: int) -> dict:
     try:
-        query = session.query(DicaSustentavel).filter_by(_id = id).first()
+        query = session.query(DicaSustentavel).filter_by(_id=id).first()
 
-        if is_str_valido(Base.descricao) or is_str_valido(Base.nome) or  # type: ignore
-            is_str_valido(Base.TIPO_CONSUMO_id): # type: ignore
+        if query is None: raise NotDica(session)
 
-            if is_str_valido(Base.descricao):  # type: ignore
-                query.descricao = Base.descricao # type: ignore
+        if Base.nome is None and Base.descricao is None and Base.TIPO_CONSUMO_id is None:  # type: ignore
+            raise BeadRequeste(session)
 
-            if is_str_valido(Base.nome): query.nome = Base.nome  # type: ignore
-            
-            if is_str_valido(Base.TIPO_CONSUMO_id):  # type: ignore
-                query.TIPO_CONSUMO_id = Base.TIPO_CONSUMO_id  # type: ignore
-        
-        else: raise BeadRequeste(session)
+        if Base.nome is not None: query.nome = Base.nome  # type: ignore
 
-        return {"mensagem": "dica edida com sucesso"}
-    
-    except () : raise
+        if Base.descricao is not None: query.descricao = Base.descricao  # type: ignore
+
+        if Base.TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = Base.TIPO_CONSUMO_id  # type: ignore
+
+        session.commit()
+
+        return {"mensagem": "dica editada com sucesso"}
+
+    except (NotDica, BeadRequeste):raise
+
+    except IntegrityError: raise DuplicationTipo(session)
 
     except Exception as e: raise ErroInesperado(e, session)
 
@@ -47,44 +48,14 @@ def excluir_dica(session: Session, id: int) -> dict:
 
         if query:
             session.commit()
-            return {"mensagem": "dica removido."}
-        
-        else: raise NotDica(session)
+            return {"mensagem": "dica removida"}
 
-    except (NotDica) : raise
+        raise NotDica(session)
 
-    except Exception as e:
-        raise ErroInesperado(e, session)
-
-def list_dica(session: Session, id: int | None) -> dict:
-    query = None
-
-    if id is None : 
-        query = session.query(DicaSustentavel).all()
-    else:
-        query = session.query(DicaSustentavel).filter_by(_id = id).first()
+    except NotDica : raise
     
-    if query != []:
-        user_final = {'mensagem': []}
-        for i in query: # type: ignore
-            
-            user_final['mensagem'].append({'id':i._id,
-                                        'nome': i._nome,
-                                        'descricao':i._descricao,
-                                        #FIXME - troca por uma função que retorna o nome do tipo
-                                        "tipo_consumo": i._TIPO_CONSUMO_id
-                                        })
-        
-        if len(user_final['mensagem']) == 0: raise NotDica(session) 
-        return user_final
-    
-    elif query is not None:
-        return {"mensagem":{
-            "nome": query._nome, # type: ignore
-            "descricao": query._descricao,  # type: ignore
-            #FIXME - troca por uma função que retorna o nome do tipo
-            "tipo_consumo": query._TIPO_CONSUMO_id  # type: ignore
-        }}
+    except Exception as e: raise ErroInesperado(e, session)
 
-    else: raise NotDica(session)
+#FIXME - add mostart e listar dicas
+
 

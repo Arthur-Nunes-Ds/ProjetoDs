@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from src.model import Usuario
-from src.config import USER_ADMIN
 from .erros import DuplicationUser, RequestInvalida ,NoteUser, SenhaInvalida, ErroInesperado, DnsEmailNotExiste
 from .jwt import criar_token
 from .email import is_valido_dns
@@ -33,11 +32,11 @@ def logar_conta(Base: object, session: Session) -> dict :
 
         if query is None: raise NoteUser(session)
             
-        if query.verificarSenha(Base.password) and query.nome != USER_ADMIN:  # type: ignore
+        if query.verificarSenha(Base.password):  # type: ignore
             _jwt = criar_token(query.id)
         
-        elif query.verificarSenha(Base.password) and query.nome == USER_ADMIN: # type: ignore
-            _jwt = criar_token(query.id, is_admin= True)
+        #elif query.verificarSenha(Base.password) and query.nome == USER_ADMIN: # type: ignore
+        #    _jwt = criar_token(query.id, is_admin= True)
 
         else: raise SenhaInvalida(session)
 

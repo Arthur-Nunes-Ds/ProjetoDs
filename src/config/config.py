@@ -125,11 +125,5 @@ except ValueError:
     EXPIRATION_TIMER_MINUTES_EMAIL = 5
 #!SECTION
 
-#SECTION - admin
-USER_ADMIN = getenv('USER_ADMIN')
-SENHA_ADMIN = getenv('SENHA_ADMIN')
-if (not USER_ADMIN or not USER_ADMIN.strip()) or (not SENHA_ADMIN or not SENHA_ADMIN.strip()):
-    class AmindError(Exception): pass
-    raise AmindError('O sistema precisa da SENHA_ADMIN e/ou USER_ADMIN do .env com um valor válido')
-#!SECTION
+
 

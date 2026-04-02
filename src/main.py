@@ -1,35 +1,11 @@
 from sys import exit
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 from src.config import HOST_FRONT
 from src.routes import manger_route as mr
-from src.services import admin_create, erros
-from src.conection import get_sesion
-
-#A "vida" da api -> configuração quando vc abre pela 1° fez a api ou fecha ela
-#Linck da doc que fala mais sobre isso https://fastapi.tiangolo.com/advanced/events/
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        #pega um seção especifica
-        session = next(get_sesion())
-        admin_create(session)
-    except erros.DuplicationUser: session.close()
-    except erros.ErroInesperado:
-        session.rollback()
-        print("Server -> algo deu erra ao criar o admin. Finalizando a API")
-        #finaliza a API
-        exit(1)
-    finally:
-        #finaliza essa seção
-        session.close()
-    
-    yield
 
 #info da api
 app = FastAPI(
-    lifespan=lifespan,
     title='Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE Ecologic Tech',
     description = "O AEchoDE (Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE) é uma API \
     desenvolvida em Python utilizando o framework FastAPI. Ele oferece funcionalidades para monitorar e gerenciar \
@@ -51,11 +27,24 @@ app = FastAPI(
             """
         },
         {
-            "name": "Admin",
+            "name":"Meta",
             "description":"""
-             Operações relacionadas ao Admin serão substuita por uma ia,\n \
-            admin ele é criado altomaticamente com base nas var de abiente do sistema. \n \
+            Operações relacionadas ao cadastro do consumo do usuario. \n \
+            Todos os EndPoint devem receber o JWT no Heard \n \
+            """
+        },
+        {
+            "name":"Tipo Consumo",
+            "description":"""
+            Operações relacionadas ao CRUD do Tipo de Consumo só o Adm pode altera esse tipo. \n \
             Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
+            """
+        },
+        {
+            "name":"Consumo",
+            "description":"""
+            Operações relaciondas ao CRUD do Consumo do User \n \
+            Todos EndPoint deve receber o JWT no Heard \n \
             """
         }
     ]

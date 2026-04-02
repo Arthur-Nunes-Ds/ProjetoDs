@@ -10,6 +10,42 @@ class DuplicationUser(HTTPException):
             detail='já existe um cliente com esse email'
         )
 
+class DuplicationTipo(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='já existe um tipo de consumo desse tipo'
+        )
+
+class DuplicationDica(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='já existe um tipo de consumo desse tipo'
+        )
+
+class DuplicationMeta(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='já existe um tipo de consumo desse tipo'
+        )
+
+class DuplicationConsumo(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='já existe um tipo de consumo desse tipo'
+        )
+
 class NoteUser(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
@@ -19,6 +55,15 @@ class NoteUser(HTTPException):
             detail="Não há User Verificado com esse Email"
         )
 
+class NoteTipo(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não há Tipo de Consumo cadastrado com esse id"
+        )
+
 class NotDica(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
@@ -26,6 +71,24 @@ class NotDica(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Não há Dicas Cadastrada com esse id"
+        )
+
+class NotMeta(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não há Meta cadastrada com esse id"
+        )
+
+class NotConsumo(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não há Consumo cadastrado com esse id"
         )
 
 class SenhaInvalida(HTTPException):
@@ -132,4 +195,5 @@ class BeadRequeste(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Falata requisto'
         )
+
 

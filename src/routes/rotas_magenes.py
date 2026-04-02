@@ -2,7 +2,10 @@ from fastapi.responses import RedirectResponse
 from fastapi import APIRouter
 from .publics import Rotas_Publics
 from .user import Rotas_User
-#from .admin import Rota_Admin
+from .tipo_consumo import Rotas_Tipo_Consumo
+from .dicas import Rotas_Dicas
+from .meta import Rotas_Meta
+from .consumo import Rotas_Consumo
 from src.schemas import Reposne500
 
 manger_route = APIRouter(responses={
@@ -31,10 +34,29 @@ manger_route.include_router(
     tags=["Cliente"]
 )
 
+manger_route.include_router(
+    Rotas_Tipo_Consumo,
+    prefix="/tipo_consumo",
+    tags=["Tipo Consumo"]
+)
+
+#FIXME - pensar em logica para dicas
 """manger_route.include_router(
-    Rota_Admin,
-    prefix="/admin",
-    tags=["Admin"]
+    Rotas_Dicas,
+    prefix="/dicas",
+    tags=["Dicas"]
 )"""
 
-    
+#FIXME - add rota de admin(altera isso no banco)
+
+manger_route.include_router(
+    Rotas_Meta,
+    prefix="/meta",
+    tags=["Meta"]
+)
+
+manger_route.include_router(
+    Rotas_Consumo,
+    prefix="/consumo",
+    tags=["Consumo"]
+)
