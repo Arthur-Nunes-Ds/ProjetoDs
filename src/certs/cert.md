@@ -1,1 +1,0 @@
-Nessa Pasta Ficara Certificados SSL e a Chave Privada do Servidor

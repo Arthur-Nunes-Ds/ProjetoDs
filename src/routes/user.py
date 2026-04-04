@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.conection import get_sesion
-from src.schemas import ResponseOk, BaseEditarUsuarioi, ResponseDadosUser
+from ..conection import get_sesion
+from ..schemas import ResponseOk, BaseEditarUsuarioi, ResponseDadosUser
 
-from src.services import( del_acont, alterar_dados, 
+from ..services import( del_acont, alterar_dados, 
                          dados_user, verificar_jwt_user )
 
 Rotas_User = APIRouter(

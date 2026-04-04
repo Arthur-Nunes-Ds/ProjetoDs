@@ -1,4 +1,4 @@
-from src.conection import Base
+from ..conection import Base
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -33,23 +33,23 @@ class Consumo(Base):
         self._TIPO_CONSUMO_id = TIPO_CONSUMO_id
 
     @property 
-    def id(self) -> int: return self._id 
+    def id(self) -> int: return self._id # type: ignore
 
     @property
-    def tipoConsumoId(self) -> int: return self._TIPO_CONSUMO_id 
+    def tipoConsumoId(self) -> int: return self._TIPO_CONSUMO_id  # type: ignore
 
     @property
-    def UsuarioID(self) -> int: return self._USUARIO_id 
+    def UsuarioID(self) -> int: return self._USUARIO_id # type: ignore 
 
     @property
-    def valor(self) ->float: return self._valor
-
+    def valor(self) ->float: return self._valor # type: ignore
+ 
     @valor.setter
     def valor(self, new_valor: float) -> None: 
         self._valor = new_valor
 
     @property
-    def dt_perioto(self) -> datetime: return self._data_registro
+    def dt_perioto(self) -> datetime: return self._data_registro # type: ignore
 
     @dt_perioto.setter
     def dt_perioto(self, new_dt: datetime) -> None: 

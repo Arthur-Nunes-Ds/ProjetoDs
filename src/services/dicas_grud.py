@@ -1,6 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from src.model import DicaSustentavel
+from ..model import DicaSustentavel
 from .erros import BeadRequeste, DuplicationTipo, ErroInesperado, NotDica, DuplicationConsumo
 
 def criar_dica(session: Session, Base: object) -> dict:

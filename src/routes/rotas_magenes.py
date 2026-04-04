@@ -6,7 +6,7 @@ from .tipo_consumo import Rotas_Tipo_Consumo
 from .dicas import Rotas_Dicas
 from .meta import Rotas_Meta
 from .consumo import Rotas_Consumo
-from src.schemas import Reposne500
+from ..schemas import Reposne500
 
 manger_route = APIRouter(responses={
     422:{"description":"Pasrametro do Request body invalido"},

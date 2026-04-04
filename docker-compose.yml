@@ -1,0 +1,47 @@
+version: '3.8'
+
+#banco + api
+services:
+  db:
+    #image -> pega o conteiner já pronto do mysql 
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SENHA_ROOT_DB}
+      MYSQL_DATABASE: ${BANCO_DB}
+      MYSQL_USER: ${USER_DB}
+      MYSQL_PASSWORD: ${SENHA_DB}
+    #a 1° porta é da rede docker e a 2° para acesso na rede "local"
+    ports:
+      - "3306:3306"
+    #onde ele vai salvar os dados do docker
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    #estado do banco
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${SENHA_ROOT_DB}"]
+        #excuta o comando acima a cada 10 segundo
+        interval: 10s
+        #espera a resposta do comando dentro de 5s
+        timeout: 5s
+        #testa vez
+        retries: 5
+
+  #nome("um dns interno") para o docker intentificar os serviços internos do docker
+  backend_python:
+    #criar a "imagem custon" do back end (o Dockerfile)
+    build: .
+    restart: always
+    ports:
+      - "8080:8080"
+    #fala para ele que o .env contem os dados da variaveis de abiente
+    env_file:
+      - .env
+    #fala para o serviço "db"(banco) e espera para o banco está pronto apra roda a API 
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:

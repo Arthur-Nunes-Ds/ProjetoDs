@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from src.conection import get_sesion
-from src.schemas import (BaseCriarUsuario, ResponseOk, 
+from ..conection import get_sesion
+from ..schemas import (BaseCriarUsuario, ResponseOk, 
                         ResponseLogarUser)
-from src.services import (criar_conta, logar_conta, 
+from ..services import (criar_conta, logar_conta, 
                           enviar_email,verificar_email)
 
 Rotas_Publics = APIRouter()

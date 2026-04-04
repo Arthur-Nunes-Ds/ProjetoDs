@@ -1,29 +1,15 @@
-import json
-from pathlib import Path
 from urllib.parse import quote_plus
 from os import getenv
-from dotenv import load_dotenv
 from datetime import timedelta
-
-#leitura das var de ambiente
-load_dotenv()
-
 #SECTION - db
-IP_DB = getenv("IP_DB")
 #Garante que a senha com caracteres especiais seja lida como senha,
     #não como parte do endereço. Sem o quote_plus, o SQLAlchemy pode interpretar
     #'@' como parte do endereço, e não da senha.
-#Caso a var com esse nome no .env ele passa um str
-SENHA_DB = quote_plus(str(getenv("SENHA_DB", 'None')))
+SENHA_DB = quote_plus(str(getenv("SENHA_DB")))
 USER_DB = getenv("USER_DB")
 BANCO_DB = getenv("BANCO_DB")
-try:
-    #tratamento para o int já que as var de ambiente são tratas como string automaticamente
-    PORTA_DB = int(getenv("PORTA_DB", '3306')) 
-except ValueError:
-    print('erro na hora de carrega a porta do banco o padrão dela vai ser 3306')
-    PORTA_DB = 3306
 #!SECTION
+
 
 #SECTION - jwt 
 SECRETES_KEY = getenv('SECRETES_KEY')
@@ -71,33 +57,13 @@ if EXPIRATION_TIMER_JWT_TIPO == None:
 else:
     timer = tipo_de_timer(EXPIRATION_TIMER_JWT_TIPO)
 
-
-
 #!SECTION
 
-#SECTION - agr 
-#valores padrão
-DEBUG = False
-SQLITE = False
-HOST_FRONT = ['*']
-POSTGRE = False
-HOST = 'localhost'
-PORT = 8080
-HTTPS = False
+#SECTION - front
+HOST_FRONT = getenv('HOST_FRONT', ['*'])
 
-#tenta ler do arquivo temporário
-config_file = Path('src/temp/.sgu_config.json')
-if config_file.exists():
-    with open(config_file, 'r') as f:
-        dados = json.load(f)
-        DEBUG = dados.get('DEBUG')
-        SQLITE = dados.get('SQLITE')
-        HOST_FRONT = dados.get('HOST_FRONT')
-        POSTGRE = dados.get("POSTGRE")
-        HOST = dados.get("HOST")
-        PORT = dados.get("PORT")
-        HTTPS = dados.get("HTTPS")
-
+if HOST_FRONT is str:
+    HOST_FRONT = list(HOST_FRONT.split(","))
 
 #!SECTION
 

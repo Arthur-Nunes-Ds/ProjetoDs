@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from src.model import TipoConsumo
+from ..model import TipoConsumo
 from .erros import ErroInesperado, DuplicationTipo, RequestInvalida,NoteTipo
 
 def criar_tipo(session: Session, Base: object) -> dict:

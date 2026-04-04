@@ -3,7 +3,7 @@ from fastapi import Depends
 from jose import jwt, JWTError
 from datetime import datetime, timezone
 from .erros import ErroInesperado, JwtInvalido,AdminActionNotAllowed, JustAdmin
-from src.config import SECRETES_KEY,ALG,timer
+from ..config import SECRETES_KEY,ALG,timer
 
 oauth_schema = OAuth2PasswordBearer('/public/Logar_Conta')
 

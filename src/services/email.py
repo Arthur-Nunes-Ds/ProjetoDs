@@ -3,12 +3,11 @@ from email.message import EmailMessage
 from sqlalchemy.orm import Session
 from email_validator import validate_email, EmailNotValidError
 
-from src.model import Usuario
+from ..model import Usuario
 from .jwt import criar_token, verificar_jwt
 from .erros import (NoteUser, AutStmpServer,ErroInesperado,StmpIndisponivel, 
                     JwtNotEmail, JwtInvalido)
-from src.config import (EMAIL_GOOGLE,SENHA_DE_APP, EMAIL_REDE, PORT, 
-                        HOST,HTTPS)
+from ..config import (EMAIL_GOOGLE,SENHA_DE_APP, EMAIL_REDE, HOST_FRONT)
 
 def is_valido_dns(email: str) -> bool:
     try:  
@@ -27,9 +26,8 @@ async def enviar_email(base: object, session : Session)-> dict :
 
         jwt = criar_token(int(query.id), is_login = False)
 
-        #REVIEW - estudar junto com front qual seria a melhor opeção
-        htt = "https" if HTTPS else "http"
-        url = f"{htt}://{HOST}:{PORT}/public/Verificar_Email/{jwt}"
+        #ANCHOR - para efeitos de test isso aqui sera encaminhado para api(objetiov e para front)
+        url = f"http://localhost:8080/public/Verificar_Email/{jwt}"
 
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
