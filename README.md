@@ -41,7 +41,7 @@ Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente.
 # Documentação da API
 
 A documentação da API(O Docker deve estár rodando) está disponível em: `http://localhost:8080/docs`
-Caso não esteja com a API rodando, acesse a documentação em: `http://https://github.com/NunesDevelloper/ProjetoDs/`
+Caso não esteja com a API rodando, acesse a documentação em: [Docs EndPointPdf](https://github.com/NunesDevelloper/ProjetoDs/blob/main/docs/EndPoitn.pdf)
 
 # Autor
 
