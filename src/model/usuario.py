@@ -1,4 +1,4 @@
-from src.conection import Base
+from ..conection import Base
 from sqlalchemy import Column, Integer, String,Boolean, DateTime
 from sqlalchemy.orm import relationship
 from passlib.hash import sha256_crypt as sha256
@@ -71,3 +71,5 @@ class Usuario(Base):
     def verificarSenha(self, senha) -> bool: 
         return sha256.verify(senha, self._hash_senha)  # type: ignore
     
+
+

@@ -1,4 +1,4 @@
-from src.conection import Base
+from ..conection import Base
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -32,23 +32,22 @@ class Meta(Base):
         self._TIPO_CONSUMO_id = TIPO_CONSUMO_id
 
     @property 
-    def id(self) -> int: return self._id 
+    def id(self) -> int: return self._id  # type: ignore
 
     @property
-    def tipoConsumoId(self) -> int: return self._TIPO_CONSUMO_id 
+    def tipoConsumoId(self) -> int: return self._TIPO_CONSUMO_id  # type: ignore
+    @property
+    def UsuarioID(self) -> int: return self._USUARIO_id  # type: ignore
 
     @property
-    def UsuarioID(self) -> int: return self._USUARIO_id 
-
-    @property
-    def valorMeta(self) ->float: return self._valor_meta
+    def valorMeta(self) ->float: return self._valor_meta # type: ignore
 
     @valorMeta.setter
     def valorMeta(self, new_valor: float) -> None: 
         self._valor_meta = new_valor
 
     @property
-    def periodo(self) -> datetime: return self._periodo
+    def periodo(self) -> datetime: return self._periodo # type: ignore
 
     @periodo.setter
     def periodo(self, new_dt: datetime) -> None: self._periodo = new_dt

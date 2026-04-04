@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.conection import get_sesion
-from src.schemas.tipo_consumo import (BaseCriarTipoConsumo,BaseEditarTipoConsumo,ResponseTipoConsumo)
-from src.schemas.geral import ResponseOk
-from src.services import criar_tipo, del_tipo, editar_tipo, show_tipo
+from ..conection import get_sesion
+from ..schemas.tipo_consumo import (BaseCriarTipoConsumo,BaseEditarTipoConsumo,ResponseTipoConsumo)
+from ..schemas.geral import ResponseOk
+from ..services import criar_tipo, del_tipo, editar_tipo, show_tipo
 
 Rotas_Tipo_Consumo = APIRouter(
     responses={

@@ -1,31 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.exc import OperationalError
-from src.config import DEBUG, SQLITE, USER_DB,SENHA_DB,IP_DB,PORTA_DB,BANCO_DB,POSTGRE
+from .config import BANCO_DB, SENHA_DB, USER_DB
 
-endereco_db = None
+endereco_db = f"mysql+pymysql://{USER_DB}:{SENHA_DB}@db:3306/{BANCO_DB}"
 
-if DEBUG == True and SQLITE == True:
-    endereco_db = "sqlite:///src/temp/banco.db"
-elif POSTGRE == False:  
-    endereco_db = f"mysql+pymysql://{USER_DB}:{SENHA_DB}@{IP_DB}:{PORTA_DB}/{BANCO_DB}"
-else:
-    endereco_db = DATABASE_URL = f"postgresql+psycopg2://{USER_DB}:{SENHA_DB}@{IP_DB}:{PORTA_DB}/{BANCO_DB}"
-
-try:
-    #Cria a engine para conectar o python ao mysql
-        #assim ele jpá pega o fuso do banco 
-    engine = create_engine(endereco_db) 
-    #Cria uma conxeção e depois fecha a mesma conexeção
-    engine.connect().close()
-    #Esse erro acontece quando o SQLalchemy não consegue se conectar com a DB
-    print("Server -> Conectado ao Banco MySQL" if POSTGRE == False else 
-          "Server -> Conectado ao Banco PostgreSQL")
-except OperationalError as e:
-    print(e)
-    print('Server -> não foi possivel conectar com o MysQLL\\PostgerSQL\n \
-           Iniciando o o sqlite.')
-    engine = create_engine("sqlite:///src/temp/banco.db")
+engine = create_engine(endereco_db) 
 
 #Classe base para os modelos
 Base = declarative_base()

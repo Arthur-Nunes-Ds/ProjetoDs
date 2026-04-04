@@ -1,4 +1,4 @@
-from src.conection import Base, engine
+from ..conection import Base, engine
 from .usuario import Usuario
 from .tipo_consumo import TipoConsumo
 from .dica_sustentavel import DicaSustentavel

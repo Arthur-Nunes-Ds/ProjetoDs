@@ -1,6 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from src.model import Meta
+from ..model import Meta
 from .erros import ErroInesperado, NotMeta, RequestInvalida, DuplicationMeta
 
 def criar_meta(session: Session, Base: object, id_user: int) -> dict:

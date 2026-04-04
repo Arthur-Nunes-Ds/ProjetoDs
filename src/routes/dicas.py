@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.conection import get_sesion
-from src.schemas.dicas import BaseCriarDica, BaseEditarDica
-from src.schemas.geral import ResponseOk
-from src.services import criar_dica, editar_dica, excluir_dica
+from ..conection import get_sesion
+from ..schemas.dicas import BaseCriarDica, BaseEditarDica
+from ..schemas.geral import ResponseOk
+from ..services import criar_dica, editar_dica, excluir_dica
 
 Rotas_Dicas = APIRouter(
     responses={

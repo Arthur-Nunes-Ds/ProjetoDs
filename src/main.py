@@ -1,8 +1,7 @@
-from sys import exit
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.config import HOST_FRONT
-from src.routes import manger_route as mr
+from .config import HOST_FRONT
+from .routes import manger_route as mr
 
 #info da api
 app = FastAPI(
@@ -55,7 +54,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     #quem pode fazer requisições para o bac
-    allow_origins=HOST_FRONT,  
+    allow_origins=HOST_FRONT,
     #permite que o navegado envie credenciais(cookies, jwt) junto da requisição
     allow_credentials=True,
     #permite os metedos como get, post, etc.
@@ -64,6 +63,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 app.include_router(mr)
-

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from src.model import Usuario
+from ..model import Usuario
 from .erros import DuplicationUser, RequestInvalida ,NoteUser, SenhaInvalida, ErroInesperado, DnsEmailNotExiste
 from .jwt import criar_token
 from .email import is_valido_dns

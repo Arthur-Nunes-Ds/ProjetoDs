@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from src.conection import get_sesion
-from src.schemas.consumo import BaseCriarConsumo, BaseEditarConsumo, ResponseAllConsumo
-from src.schemas.geral import ResponseOk
-from src.services import criar_consumo, del_consumo, editar_consumo, verificar_jwt_user
-from src.services.consumo_grud import lista_consumo
+from ..conection import get_sesion
+from ..schemas.consumo import BaseCriarConsumo, BaseEditarConsumo, ResponseAllConsumo
+from ..schemas.geral import ResponseOk
+from ..services import criar_consumo, del_consumo, editar_consumo, verificar_jwt_user
+from ..services.consumo_grud import lista_consumo
 
 Rotas_Consumo = APIRouter(
     responses={
