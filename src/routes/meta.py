@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..conection import get_sesion
-from ..schemas.geral import ResponseOk
-from ..schemas.meta import BaseCriarMeta, BaseEditarMeta, ResponseAllMeta
-from ..services import criar_meta, del_meta, editar_meta, verificar_jwt_user
-from ..services.meta_grud import list_meta
+from ..schemas import ResponseOk, BaseCriarMeta, BaseEditarMeta, ResponseAllMeta
+from ..services import criar_meta, del_meta, editar_meta, verificar_jwt_user, list_meta
 
 Rotas_Meta = APIRouter(
     responses={

@@ -71,5 +71,7 @@ class Usuario(Base):
     def verificarSenha(self, senha) -> bool: 
         return sha256.verify(senha, self._hash_senha)  # type: ignore
     
+    def idAdmin(self) -> None: self._id = -1
+    
 
 

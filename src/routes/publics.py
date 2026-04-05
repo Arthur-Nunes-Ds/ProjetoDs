@@ -9,7 +9,6 @@ from ..services import (criar_conta, logar_conta,
 
 Rotas_Publics = APIRouter()
 
-#SECTION - Criar_Conta
 @Rotas_Publics.post("/Criar_Conta", tags=["Cliente"], 
                     response_model=ResponseOk, 
                     responses={
@@ -31,9 +30,7 @@ async def Criar_Conta(base: BaseCriarUsuario,
     await enviar_email(base, session)
 
     return resut_conta
-#!SECTION
 
-#SECTION - Logar_Conta
 @Rotas_Publics.post("/Logar_Conta", tags=["Cliente"],
                     response_model=ResponseLogarUser,
                     responses={
@@ -53,7 +50,6 @@ async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(),
     '''
 
     return logar_conta(base, session)
-#!SECTION
 
 @Rotas_Publics.get("/Verificar_Email/{token}", tags=["Cliente"],
                    response_model=ResponseOk,

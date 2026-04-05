@@ -40,14 +40,11 @@ manger_route.include_router(
     tags=["Tipo Consumo"]
 )
 
-#FIXME - pensar em logica para dicas
-"""manger_route.include_router(
+manger_route.include_router(
     Rotas_Dicas,
     prefix="/dicas",
     tags=["Dicas"]
-)"""
-
-#FIXME - add rota de admin(altera isso no banco)
+)
 
 manger_route.include_router(
     Rotas_Meta,

@@ -8,8 +8,12 @@ from .email import is_valido_dns
 def criar_conta(Base: object, session : Session) -> dict:
     try:
         if is_valido_dns(Base.email) == False: raise DnsEmailNotExiste()  # type: ignore
+        
+        user : Usuario 
 
         user = Usuario(Base.nome, Base.email ,Base.senha) # type: ignore
+    
+
 
         session.add(user)
         session.commit()
@@ -31,12 +35,12 @@ def logar_conta(Base: object, session: Session) -> dict :
 
 
         if query is None: raise NoteUser(session)
-            
-        if query.verificarSenha(Base.password):  # type: ignore
-            _jwt = criar_token(query.id)
+
+        if query.verificarSenha(Base.password) and query.id == -1:  # type: ignore
+            _jwt = criar_token(query.id, is_admin= True)
         
-        #elif query.verificarSenha(Base.password) and query.nome == USER_ADMIN: # type: ignore
-        #    _jwt = criar_token(query.id, is_admin= True)
+        elif query.verificarSenha(Base.password): # type: ignore
+            _jwt = criar_token(query.id)
 
         else: raise SenhaInvalida(session)
 

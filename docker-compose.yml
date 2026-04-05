@@ -37,7 +37,8 @@ services:
       - "8080:8080"
     #fala para ele que o .env contem os dados da variaveis de abiente
     env_file:
-      - .env
+      - path: .env
+        required: false
     #fala para o serviço "db"(banco) e espera para o banco está pronto apra roda a API 
     depends_on:
       db:

@@ -2,7 +2,6 @@ import smtplib
 from email.message import EmailMessage
 from sqlalchemy.orm import Session
 from email_validator import validate_email, EmailNotValidError
-
 from ..model import Usuario
 from .jwt import criar_token, verificar_jwt
 from .erros import (NoteUser, AutStmpServer,ErroInesperado,StmpIndisponivel, 

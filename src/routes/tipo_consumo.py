@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..conection import get_sesion
-from ..schemas.tipo_consumo import (BaseCriarTipoConsumo,BaseEditarTipoConsumo,ResponseTipoConsumo)
-from ..schemas.geral import ResponseOk
-from ..services import criar_tipo, del_tipo, editar_tipo, show_tipo
+from ..schemas import (BaseCriarTipoConsumo,BaseEditarTipoConsumo,ResponseTipoConsumo ,ResponseOk)
+from ..services import criar_tipo, del_tipo, editar_tipo, show_tipo, verificar_jwt_admin
 
 Rotas_Tipo_Consumo = APIRouter(
     responses={
@@ -13,7 +12,8 @@ Rotas_Tipo_Consumo = APIRouter(
         409: {
             "description": "Já existe um tipo de consumo desse tipo",
         },
-    }
+    },
+    dependencies=[Depends(verificar_jwt_admin)]
 )
 
 @Rotas_Tipo_Consumo.post("/Criar_Tipo", response_model=ResponseOk)

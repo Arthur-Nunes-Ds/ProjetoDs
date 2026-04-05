@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..model import Consumo
 from .erros import ErroInesperado, NotConsumo, RequestInvalida, DuplicationConsumo
+from ..model import Consumo
 
 def criar_consumo(session: Session, Base: object, id_user: int) -> dict:
     try:

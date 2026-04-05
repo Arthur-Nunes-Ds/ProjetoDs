@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..conection import get_sesion
 from ..schemas import ResponseOk, BaseEditarUsuarioi, ResponseDadosUser
-
 from ..services import( del_acont, alterar_dados, 
                          dados_user, verificar_jwt_user )
 
