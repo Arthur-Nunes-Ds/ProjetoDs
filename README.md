@@ -18,7 +18,7 @@ Para instalar o AEchoDE, siga os passos abaixo:
    ```
 3. Criar o Docker:
    ```bash
-    docker-compose up --build
+    docker compose up --build
    ```
 
 # Configuração
