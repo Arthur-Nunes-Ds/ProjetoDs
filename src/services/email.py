@@ -26,7 +26,7 @@ async def enviar_email(base: object, session : Session)-> dict :
         jwt = criar_token(int(query.id), is_login = False)
 
         #ANCHOR - para efeitos de test isso aqui sera encaminhado para api(objetiov e para front)
-        url = f"http://localhost:8080/public/Verificar_Email/{jwt}"
+        url = f"http://0.0.0.0:8080/public/Verificar_Email/{jwt}"
 
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
