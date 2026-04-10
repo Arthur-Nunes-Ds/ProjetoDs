@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Inicio from './src/pages/inicio';
 import Detalhes from './src/pages/Detalhes';
 import Login from './src/pages/Login';
+import Cadastro from './src/pages/Cadastro';
+import Cadastro_Consumo from './src/pages/Cadastro_Consumo';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,10 +35,18 @@ export default function App() {
           options={{ title: 'Login' }} 
         />
 
-        
-        
-        
- 
+        <Stack.Screen 
+          name="Cadastro" 
+          component={Cadastro} // Usando o componente importado
+          options={{ title: 'Cadastro' }} 
+        />
+
+        <Stack.Screen 
+          name="Cadastro_Consumo" 
+          component={Cadastro_Consumo} // Usando o componente importado
+          options={{ title: 'Cadastro_Consumo' }} 
+        />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

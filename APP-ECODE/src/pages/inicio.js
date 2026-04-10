@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
+import { BlurView } from 'expo-blur';
 
 export default function Inicio({ navigation }) {
   let [fontsLoaded] = useFonts({
@@ -8,99 +9,100 @@ export default function Inicio({ navigation }) {
       Ubuntu_400Regular,
     });
 
-    if (!fontsLoaded) {
+  if (!fontsLoaded) {
     return null;
   }
 
   return (
+    // 1. O ScrollView agora é o contêiner principal (fica por fora)
     <ScrollView style={styles.fundo}>
       
-      <View style={styles.texto_1}>
-        <Text style={styles.titulo_1}>Consumo inteligente.{'\n'}
-          <Text style={{color:'#b3b3b3'}}>
-            Sustentabilidade no dia a dia.
+
+      <ImageBackground 
+        source={require('../../assets/Fundo.png')} 
+        style={styles.containerFundo} 
+        resizeMode="cover"
+      >
+        
+        <View style={styles.texto_1}>
+          <Text style={styles.titulo_1}>Consumo inteligente.{'\n'}
+            <Text style={{color:'#b3b3b3'}}>
+              Sustentabilidade no dia a dia.
+            </Text>
+            <Text style={styles.sub_titulo_1}>{'\n\n'}Acompanhe e reduza o consumo de água, energia e materiais
+              com dados claros e decisões conscientes.{'\n'}
+            </Text>
           </Text>
-          <Text style={styles.sub_titulo_1}>{'\n\n'}Acompanhe e reduza o consumo de água, energia e materiais
-            com dados claros e decisões conscientes.{'\n'}</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Login')}
+          style={styles.botao_redondo}>
+            <Text style={styles.texto_botao}>Começar agora</Text>
+        </TouchableOpacity> 
+
+        <TouchableOpacity
+          style={[styles.botao_redondo, {backgroundColor:'#ffffff00'}]}>
+            <Text style={[styles.texto_botao,{color:'#fff'}]}>Ver recursos</Text>
+        </TouchableOpacity>
+
+        <View style={styles.caixas_view}>
+
+          <TouchableOpacity style={styles.caixa}>
+            <Text style={styles.texto_caixa1}>REDUZA ATÉ 30%</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 30, paddingVertical: 0}]}>Água</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 15, paddingVertical: 20}]}>Monitore o consumo diário de água.</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.caixa}>
+            <Text style={styles.texto_caixa1}>ECONOMIA INTELIGENTE</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 30, paddingVertical: 0}]}>Energia</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 15, paddingVertical: 20}]}>Visualize picos de consumo elétrico.</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.caixa}>
+            <Text style={styles.texto_caixa1}>SUSTENTABILIDADE</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 30, paddingVertical: 0}]}>Materiais</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 15, paddingVertical: 20}]}>Controle o uso e descarte de materiais.</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.caixa}>
+            <Text style={styles.texto_caixa1}>CUSTOMIZAÇÃO</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 30, paddingVertical: 0}]}>Personalizados</Text>
+            <Text style={[styles.texto_caixa1,{fontSize: 15, paddingVertical: 20}]}>Personalização de acordo com o usuário.</Text>
+          </TouchableOpacity>
+
+        </View>
+
+        <Text style={styles.frase}>
+          Sustentabilidade começa com consciência.
         </Text>
-      </View>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Login')}
-        style={styles.botao_redondo}>
-          <Text style={styles.texto_botao}>Começar agora</Text>
-      </TouchableOpacity>
+        
+        
 
-      <TouchableOpacity
-        style={[styles.botao_redondo, {backgroundColor:'#ffffff00'}]}>
-          <Text style={[styles.texto_botao,{color:'#fff'}]}>Ver recursos</Text>
-      </TouchableOpacity>
-
-      <View style={styles.caixas_view}>
-
-        <TouchableOpacity style={styles.caixa}>
-          <Text style={styles.texto_caixa1}>
-            REDUZA ATÉ 30%
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:30,paddingBlock:0,}]}>
-            Água
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:15,paddingBlock:20,}]}>
-            Monitore o consumo diário de água.
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.caixa}>
-          <Text style={styles.texto_caixa1}>
-            ECONOMIA INTELIGENTE
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:30,paddingBlock:0,}]}>
-            Energia
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:15,paddingBlock:20,}]}>
-            Visualize picos de consumo elétrico.
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.caixa}>
-          <Text style={styles.texto_caixa1}>
-            SUSTENTABILIDADE
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:30,paddingBlock:0,}]}>
-            Materiais
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:15,paddingBlock:20,}]}>
-            Controle o uso e descarte de materiais.
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.caixa}>
-          <Text style={styles.texto_caixa1}>
-            CUSTOMIZAÇÃO
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:30,paddingBlock:0,}]}>
-            Personalizados
-          </Text>
-          <Text style={[styles.texto_caixa1,{fontSize:15,paddingBlock:20,}]}>
-            Personalização de acordo com o usuario.
-          </Text>
-        </TouchableOpacity>
-
-      </View>
-
-    <Text style={styles.frase}>
-      Sustentabilidade começa com consciência.
-    </Text>
-
-
+      </ImageBackground>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   fundo:{
-    backgroundColor:'#306BAC',
-    flex:1,
+    flex:1, 
+    backgroundColor: '#306BAC' // Cor sólida para preencher caso a imagem demore a carregar
+  },
+  
+  containerFundo: {
+    flex: 1, 
+    width: '100%',
+
+  },
+  
+  // ---------------- Footer --------------
+  footer:{
+    width:'100%',
+    height:100,
+    backgroundColor:'#2b5aa0',
   },
 
   texto_1:{
@@ -150,13 +152,14 @@ const styles = StyleSheet.create({
     borderWidth:1,
     borderRadius:20,
     margin:20,
+    backgroundColor:'#4d4d4d5e', 
     borderColor:'#d0d0d0e9',
   },
   texto_caixa1:{
     color:'#d9d9d9',
     textAlign:'left',
-    paddingInline:30,
-    paddingBlock:20,
+    paddingHorizontal:30, 
+    paddingVertical:20,  
     fontFamily:'Ubuntu_400Regular'
   },
 
@@ -167,11 +170,6 @@ const styles = StyleSheet.create({
     fontSize:30,
     fontFamily:'Ubuntu_400Regular',
     color:'#fff',
-    
-    marginBlockEnd:100,
-
+    marginBottom:100, 
   }
-
-  
-  // ----------------------------------------------------------------
 });
