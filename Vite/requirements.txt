@@ -1,0 +1,1 @@
+npx shadcn@latest add @react-bits/ClickSpark-JS-TW @react-bits/DarkVeil-JS-TW @react-bits/Dock-JS-TW @react-bits/FadeContent-JS-TW @react-bits/FlowingMenu-JS-TW
