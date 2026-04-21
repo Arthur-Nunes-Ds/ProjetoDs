@@ -1,14 +1,16 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from datetime import datetime as dt
 from ..model import Meta
 from .erros import ErroInesperado, NotMeta, RequestInvalida, DuplicationMeta
 
-def criar_meta(session: Session, Base: object, id_user: int) -> dict:
+def criar_meta(session: Session, valor_meta: float, periodo: dt,
+               TIPO_CONSUMO_id: int , id_user: int) -> dict:
     try:
         meta = Meta(
-            Base.valor_meta,  # type: ignore
-            Base.periodo,  # type: ignore
-            Base.TIPO_CONSUMO_id,  # type: ignore
+            valor_meta,  
+            periodo,  
+            TIPO_CONSUMO_id,  
             id_user,
         )
 
@@ -23,19 +25,20 @@ def criar_meta(session: Session, Base: object, id_user: int) -> dict:
     except Exception as e:
         raise ErroInesperado(e, session)
 
-def editar_meta(session: Session, Base: object, id: int, id_user: int) -> dict:
+def editar_meta(session: Session, id: int, id_user: int, valor_meta: float |None, 
+                periodo: dt|None, TIPO_CONSUMO_id: int|None) -> dict:
     try:
         query = session.query(Meta).filter_by(_id=id, _USUARIO_id=id_user).first()
 
         if query is None: raise NotMeta(session)
 
-        if Base.valor_meta is None and Base.periodo is None and Base.TIPO_CONSUMO_id is None: raise RequestInvalida(session) # type: ignore
+        if valor_meta is None and periodo is None and TIPO_CONSUMO_id is None: raise RequestInvalida(session)
 
-        if Base.valor_meta is not None: query.valorMeta = Base.valor_meta  # type: ignore
+        if valor_meta is not None: query.valorMeta = valor_meta 
 
-        if Base.periodo is not None: query.periodo = Base.periodo  # type: ignore
+        if periodo is not None: query.periodo = periodo 
 
-        if Base.TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = Base.TIPO_CONSUMO_id  # type: ignore
+        if TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = TIPO_CONSUMO_id 
 
         session.commit()
 

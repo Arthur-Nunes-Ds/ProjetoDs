@@ -6,6 +6,7 @@ from .usuario import (
 	BaseEditarUsuarioi,
 	ResponseAllUser,
 	BaseEditarUsuarioiAdmin,
+    BaseAltSenha
 )
 from .geral import ResponseOk, Reposne500
 from .tipo_consumo import BaseCriarTipoConsumo, BaseEditarTipoConsumo, ResponseTipoConsumo
@@ -19,5 +20,5 @@ __all__ = [
 	"BaseEditarUsuarioiAdmin","BaseCriarTipoConsumo","BaseEditarTipoConsumo",
 	"ResponseTipoConsumo","BaseCriarDica","BaseEditarDica","ResponseAllDica",
 	"BaseDicaRecomendada","BaseCriarMeta","BaseEditarMeta","ResponseAllMeta",
-	"BaseCriarConsumo","BaseEditarConsumo","ResponseAllConsumo",
+	"BaseCriarConsumo","BaseEditarConsumo","ResponseAllConsumo","BaseAltSenha"
 ]

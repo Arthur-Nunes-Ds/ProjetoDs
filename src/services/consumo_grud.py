@@ -2,13 +2,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from .erros import ErroInesperado, NotConsumo, RequestInvalida, DuplicationConsumo
 from ..model import Consumo
+from datetime import datetime as dt
 
-def criar_consumo(session: Session, Base: object, id_user: int) -> dict:
+def criar_consumo(session: Session, valor: float, dt_perioto: dt,
+                  TIPO_CONSUMO_id: int, id_user: int) -> dict:
     try:
         consumo = Consumo(
-            Base.valor,  # type: ignore
-            Base.dt_perioto,  # type: ignore
-            Base.TIPO_CONSUMO_id,  # type: ignore
+            valor,  
+            dt_perioto,  
+            TIPO_CONSUMO_id,  
             id_user,
         )
 
@@ -21,19 +23,20 @@ def criar_consumo(session: Session, Base: object, id_user: int) -> dict:
 
     except Exception as e: raise ErroInesperado(e, session)
 
-def editar_consumo(session: Session, Base: object, id: int, id_user: int) -> dict:
+def editar_consumo(session: Session,valor: float |None, dt_perioto: dt |None,
+                  TIPO_CONSUMO_id: int | None, id: int, id_user: int) -> dict:
     try:
         query = session.query(Consumo).filter_by(_id=id, _USUARIO_id=id_user).first()
 
         if query is None: raise NotConsumo(session)
 
-        if Base.valor is None and Base.dt_perioto is None and Base.TIPO_CONSUMO_id is None: raise RequestInvalida(session) # type: ignore
+        if valor is None and dt_perioto is None and TIPO_CONSUMO_id is None: raise RequestInvalida(session) 
 
-        if Base.valor is not None: query.valor = Base.valor  # type: ignore
+        if valor is not None: query.valor = valor  
 
-        if Base.dt_perioto is not None: query.dt_perioto = Base.dt_perioto  # type: ignore
+        if dt_perioto is not None: query.dt_perioto = dt_perioto  
 
-        if Base.TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = Base.TIPO_CONSUMO_id  # type: ignore
+        if TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = TIPO_CONSUMO_id  
 
         session.commit()
 

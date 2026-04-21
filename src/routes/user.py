@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..conection import get_sesion
+from ..db import get_sesion
 from ..schemas import ResponseOk, BaseEditarUsuarioi, ResponseDadosUser
 from ..services import( del_acont, alterar_dados, 
                          dados_user, verificar_jwt_user )
@@ -8,7 +8,7 @@ from ..services import( del_acont, alterar_dados,
 Rotas_User = APIRouter(
     responses={
         404: {
-            "description":"Não há User Verificado com esse Email"
+            "description":"Não há User Verificado com esse Email/Senha Invalida"
         },
         401:{
             "description":"Não Altorizado"
@@ -39,5 +39,5 @@ async def Editar_User(base : BaseEditarUsuarioi, id: int = Depends(verificar_jwt
         OS DOIS PAREMETROS NÃO PODE SER Null\n \n \
     """
 
-    return alterar_dados(id, base, session)
+    return alterar_dados(id, base.nome, base.senha, session)
 

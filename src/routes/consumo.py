@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..conection import get_sesion
+from ..db import get_sesion
 from ..schemas import (BaseCriarConsumo, BaseEditarConsumo, ResponseAllConsumo,ResponseOk)
 from ..services import criar_consumo, del_consumo, editar_consumo, verificar_jwt_user,lista_consumo
 
@@ -20,7 +20,8 @@ async def Criar_Consumo(base: BaseCriarConsumo, id: int = Depends(verificar_jwt_
     session: Session = Depends(get_sesion),):
     """\n Cria um consumo do usuário"""
 
-    return criar_consumo(session, base, id)
+    return criar_consumo(session, base.valor, base.dt_perioto, 
+                         base.TIPO_CONSUMO_id, id)
 
 @Rotas_Consumo.put("/Editar_Consumo/{id}", response_model=ResponseOk)
 async def Editar_Consumo(id: int,base: BaseEditarConsumo,
@@ -28,7 +29,8 @@ id_user: int = Depends(verificar_jwt_user), session: Session = Depends(get_sesio
     
     """\n Edita um consumo do usuário"""
 
-    return editar_consumo(session, base, id, id_user)
+    return editar_consumo(session, base.valor, base.dt_perioto, 
+                         base.TIPO_CONSUMO_id, id, id_user)
 
 @Rotas_Consumo.delete("/Del_Consumo/{id}", response_model=ResponseOk)
 async def Del_Consumo(id: int, id_user: int = Depends(verificar_jwt_user),

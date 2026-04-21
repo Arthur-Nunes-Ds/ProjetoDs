@@ -3,9 +3,9 @@ from sqlalchemy.exc import IntegrityError
 from ..model import TipoConsumo
 from .erros import ErroInesperado, DuplicationTipo, RequestInvalida,NoteTipo
 
-def criar_tipo(session: Session, Base: object) -> dict:
+def criar_tipo(session: Session, unidade_medida: str, nome: str) -> dict:
     try:
-        tipo_consumo = TipoConsumo(Base.nome, Base.unidade_medida) # type: ignore
+        tipo_consumo = TipoConsumo(nome, unidade_medida) 
 
         session.add(tipo_consumo)
         session.commit()
@@ -17,17 +17,17 @@ def criar_tipo(session: Session, Base: object) -> dict:
     except Exception as e:
         raise ErroInesperado(e, session)
 
-def editar_tipo(session: Session,id:int , Base: object)-> dict:
+def editar_tipo(session: Session, id:int , unidade_medida: str | None, nome: str | None)-> dict:
     try:
-        query = session.query(TipoConsumo).filter_by(_id = id).first() # type: ignore
+        query = session.query(TipoConsumo).filter_by(_id = id).first()
 
         if query is None: raise NoteTipo(session)
 
-        if Base.nome is None and Base.unidade_medida is None: raise RequestInvalida(session) # type: ignore
+        if nome is None and unidade_medida is None: raise RequestInvalida(session)
         
-        if Base.nome is not None: query.nome = Base.nome  # type: ignore
+        if nome is not None: query.nome = nome 
         
-        if Base.unidade_medida is not None: query.unidadeMedida = Base.unidade_medida  # type: ignore
+        if unidade_medida is not None: query.unidadeMedida = unidade_medida 
 
         session.commit()
 

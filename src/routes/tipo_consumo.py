@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..conection import get_sesion
+from ..db import get_sesion
 from ..schemas import (BaseCriarTipoConsumo,BaseEditarTipoConsumo,ResponseTipoConsumo ,ResponseOk)
 from ..services import criar_tipo, del_tipo, editar_tipo, show_tipo, verificar_jwt_admin
 
@@ -20,7 +20,7 @@ Rotas_Tipo_Consumo = APIRouter(
 async def Criar_Tipo(base: BaseCriarTipoConsumo, session: Session = Depends(get_sesion)):
     """Cria um novo tipo de consumo."""
 
-    return criar_tipo(session, base)
+    return criar_tipo(session, base.unidade_medida, base.nome)
 
 @Rotas_Tipo_Consumo.put("/Editar_Tipo/{id}", response_model=ResponseOk)
 async def Editar_Tipo(
@@ -28,7 +28,7 @@ async def Editar_Tipo(
 ):
     """Edita um tipo de consumo existente."""
 
-    return editar_tipo(session, id, base)
+    return editar_tipo(session, id, base.unidade_medida, base.nome)
 
 @Rotas_Tipo_Consumo.delete("/Del_Tipo/{id}", response_model=ResponseOk)
 async def Del_Tipo(id: int, session: Session = Depends(get_sesion)):

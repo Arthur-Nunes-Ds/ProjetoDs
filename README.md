@@ -18,14 +18,14 @@ Para instalar o AEchoDE, siga os passos abaixo:
    ```
 3. Criar o Docker:
    ```bash
-    docker compose up --build
+    wdocker compose up --build
    ```
 
 # Configuração
 
 ## Configuração de Variáveis de Ambiente
 
-Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente. Você pode usar o arquivo "[.env.exemple](.env.exemple)" como modelo.Crie um arquivo `.env` e copie este arquivo para `.env` e ajuste os valores conforme necessário.
+Antes de iniciar o AEchoDE, é necessário configurar as variáveis de ambiente. Você pode usar o arquivo "[.env.exemple](.env.exemple)" como modelo. Crie um arquivo `.env` e copie este arquivo para `.env` e ajuste os valores conforme necessário. **Atenção não é recomendado usar caracteres como & , etc .**
 
 ## Configuração de e-mail
 

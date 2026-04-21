@@ -1,4 +1,4 @@
-from ..conection import Base
+from ..db import Base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 

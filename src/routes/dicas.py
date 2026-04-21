@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..conection import get_sesion
+from ..db import get_sesion
 from ..schemas import (BaseCriarDica, BaseEditarDica, BaseDicaRecomendada,ResponseOk, ResponseAllDica)
 from ..services import (criar_dica,editar_dica,excluir_dica,mostra_dica,
                         verificar_jwt_admin,verificar_jwt_user, list_dica)
@@ -24,7 +24,7 @@ async def Criar_Dica(
 ):
     """Cria uma dica sustentável."""
 
-    return criar_dica(session, base)
+    return criar_dica(session, base.nome, base.descricao, base.TIPO_CONSUMO_id)
 
 @Rotas_Dicas.put("/Editar_Dica/{id}", response_model=ResponseOk)
 async def Editar_Dica(
@@ -35,7 +35,7 @@ async def Editar_Dica(
 ):
     """Edita uma dica sustentável."""
 
-    return editar_dica(session, base, id)
+    return editar_dica(session, base.nome, base.descricao, base.TIPO_CONSUMO_id, id)
 
 @Rotas_Dicas.delete("/Del_Dica/{id}", response_model=ResponseOk)
 async def Del_Dica(
@@ -66,5 +66,5 @@ async def Mostra_Dica(
     Mostra uma dica com base na meta e no consumo do usuario para um tipo específico.
     """
 
-    return mostra_dica(session, id_user, base)
+    return mostra_dica(session, id_user, base.tipo_consumo_id)
 

@@ -1,0 +1,7 @@
+CREATE EVENT IF NOT EXISTS dell_user_nao_verificado
+ON SCHEDULE EVERY 1 HOUR 
+STARTS CURRENT_TIMESTAMP
+DO
+  DELETE FROM USUARIO 
+  WHERE email_verificado = false 
+  AND criado_em <= NOW() - INTERVAL 1 HOUR;

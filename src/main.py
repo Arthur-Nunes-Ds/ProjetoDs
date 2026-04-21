@@ -1,10 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import HOST_FRONT
+from .config import ALLOW_ORIGINS
 from .routes import manger_route as mr
-from .services import admin_create, erros
-from .conection import get_sesion
+from .services import erros, admin_create
+from .db import get_sesion
 
 async def lifespan(app: FastAPI):
     try:
@@ -82,7 +82,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     #quem pode fazer requisições para o bac
-    allow_origins=HOST_FRONT,
+    allow_origins=ALLOW_ORIGINS,
     #permite que o navegado envie credenciais(cookies, jwt) junto da requisição
     allow_credentials=True,
     #permite os metedos como get, post, etc.

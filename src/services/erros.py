@@ -46,7 +46,7 @@ class DuplicationConsumo(HTTPException):
             detail='já existe um tipo de consumo desse tipo'
         )
 
-class NoteUser(HTTPException):
+class NoteUserSenha(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
 

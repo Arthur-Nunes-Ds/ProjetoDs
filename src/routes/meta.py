@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ..conection import get_sesion
+from ..db import get_sesion
 from ..schemas import ResponseOk, BaseCriarMeta, BaseEditarMeta, ResponseAllMeta
 from ..services import criar_meta, del_meta, editar_meta, verificar_jwt_user, list_meta
 
@@ -21,7 +21,8 @@ async def Criar_Meta(
 ):
     """\n Cria uma meta do usuário """
 
-    return criar_meta(session, base, id)
+    return criar_meta(session, base.valor_meta, base.periodo, 
+                      base.TIPO_CONSUMO_id,id)
 
 @Rotas_Meta.put("/Editar_Meta/{id}", response_model=ResponseOk)
 async def Editar_Meta(
@@ -29,7 +30,8 @@ async def Editar_Meta(
 ):
     """\n Edita uma meta do usuário autenticado."""
 
-    return editar_meta(session, base, id, id_user)
+    return editar_meta(session, id, id_user,  base.valor_meta, base.periodo, 
+                      base.TIPO_CONSUMO_id)
 
 @Rotas_Meta.delete("/Del_Meta/{id}", response_model=ResponseOk)
 async def Del_Meta( 

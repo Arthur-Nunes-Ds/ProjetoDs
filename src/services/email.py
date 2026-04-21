@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from email_validator import validate_email, EmailNotValidError
 from ..model import Usuario
 from .jwt import criar_token, verificar_jwt
-from .erros import (NoteUser, AutStmpServer,ErroInesperado,StmpIndisponivel, 
-                    JwtNotEmail, JwtInvalido)
-from ..config import (EMAIL_GOOGLE,SENHA_DE_APP, EMAIL_REDE, HOST_FRONT)
+from .erros import (NoteUserSenha, AutStmpServer,ErroInesperado,StmpIndisponivel, 
+                    JwtNotEmail, JwtInvalido, RequestInvalida)
+from ..config import (EMAIL_GOOGLE,SENHA_DE_APP, EMAIL_REDE, RESETAR_SENHA,VERIFICAR_EMAIL)
+from ..db import redis_conection
 
 def is_valido_dns(email: str) -> bool:
     try:  
@@ -17,28 +18,33 @@ def is_valido_dns(email: str) -> bool:
     except EmailNotValidError:
         return False
 
-async def enviar_email(base: object, session : Session)-> dict :
+async def enviar_email(email: str, session : Session, is_rest_senha: bool = False)-> dict :
+    MSG = {
+    "CONTEUDO_MSG" : ["confirmar seu email","resertar sua senha"],
+    "SUBJECT" : ['Confirmação de Email', 'Resertar email'],
+    "URL": [VERIFICAR_EMAIL, RESETAR_SENHA]
+    }
+    
     try:
-        query = session.query(Usuario).filter_by(_email = base.email).first()  # type: ignore
+        query = session.query(Usuario).filter_by(_email = email).first()
 
-        if query is None : raise NoteUser(session)
+        if query is None : raise NoteUserSenha(session)
 
-        jwt = criar_token(int(query.id), is_login = False)
+        jwt = criar_token(int(query.id), is_login = False, is_rest_senha=is_rest_senha)
 
-        #ANCHOR - para efeitos de test isso aqui sera encaminhado para api(objetiov e para front)
-        url = f"http://0.0.0.0:8080/public/Verificar_Email/{jwt}"
+        url = f"{MSG['URL'][is_rest_senha]}/{jwt}"
 
         #montar o e-mail, estrutura basica
         msg = EmailMessage()
         #Assundo do email
-        msg['Subject'] = 'Confirmação de Email'
+        msg['Subject'] = MSG["SUBJECT"][is_rest_senha] 
         #que vai enviar
         if EMAIL_REDE is not None:
             msg['From'] = f"EchoDE <{EMAIL_REDE}>"
         else:
             msg["From"] = EMAIL_GOOGLE
         msg['To'] = query.email
-        #htmll
+        #html
         html =  f"""<!DOCTYPE html>  \n
         <head> \n
             <meta charset="UTF-8">\n
@@ -48,7 +54,7 @@ async def enviar_email(base: object, session : Session)-> dict :
             background: linear-gradient(118deg,rgba(125, 0, 251, 1) 17%,\n
             rgba(0, 0, 0, 1) 89%); color: azure; width: 100%; height: 300px;">\n
             <h1>Olá, {query.nome} !</h1>\n
-            <p>Aqui está o linck para confirma seu email:</p>\n
+            <p>Aqui está o linck para {MSG["CONTEUDO_MSG"][is_rest_senha]}: </p>\n
             <div style="background-color: #ffffffa2; text-align: center; padding:1px ;border-radius: 5px;">\n
                 <h3 style="color: #4CAF50; font-size: 24px;">\n
                     <a href="{url} ">click-me</a></h3>\n
@@ -72,7 +78,7 @@ async def enviar_email(base: object, session : Session)-> dict :
         
         return{'mensagem':"E-mail enviado"}
     
-    except(NoteUser): raise
+    except(NoteUserSenha): raise
 
     except smtplib.SMTPAuthenticationError:
         raise AutStmpServer(session, erro) # type: ignore
@@ -85,22 +91,38 @@ async def enviar_email(base: object, session : Session)-> dict :
 
 def verificar_email(token: str, session: Session) -> dict:
     try:
-       id, is_login, _ = verificar_jwt(token)
+        id, is_login, _ , is_rest_senha, jit = verificar_jwt(token)
 
-       if is_login == True : raise JwtNotEmail(session)
+        if redis_conection.exists(f"usado:{jit}"): raise JwtInvalido()
+        redis_conection.setex(f"usado:{jit}", 900, "true")
+            
+        if is_login == True and is_rest_senha == False: raise JwtNotEmail(session)        
+        query = session.query(Usuario).filter_by(_id = id).first()
+        if query is None: raise NoteUserSenha(session)
+        query.email_verificado = True       
+        session.commit()   
+        return {'mensagem':"Email convirmado com sucesso"}
 
-       query = session.query(Usuario).filter_by(_id = id).first()
+    except (JwtNotEmail, NoteUserSenha, JwtInvalido): raise 
+
+    except Exception as e: raise ErroInesperado(e, session)
+
+async def verificar_email_senha(token: str,senha: str ,session: Session)-> dict:
+    try:
+        id, is_login, is_admin , is_rest_senha, jit = verificar_jwt(token)
+
+        if is_login == True or is_admin == True or is_rest_senha == False: 
+            raise JwtNotEmail(session)
         
-       if query is None: raise NoteUser(session)
-     
-       query.email_verificado = True
+        if redis_conection.exists(f"usado:{jit}"): raise JwtNotEmail(session)
+        redis_conection.setex(f"usado:{jit}", 900, "true")
+       
+        query = session.query(Usuario).filter_by(_id = id).first()
+        if query is None: raise NoteUserSenha(session)
+        query.novaSenha(senha)       
+        session.commit()   
+        return {'mensagem':"Senha Alterada"}
+    
+    except (JwtNotEmail, NoteUserSenha, JwtInvalido, RequestInvalida): raise 
 
-       session.commit()
-
-       return {'mensagem':"Email convirmado com sucesso"}
-
-    except (JwtNotEmail, NoteUser, JwtInvalido): raise 
-
-    except Exception as e:
-        raise ErroInesperado(e, session)
-
+    except Exception as e: raise ErroInesperado(e, session)

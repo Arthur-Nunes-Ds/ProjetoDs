@@ -20,6 +20,10 @@ class BaseEditarUsuarioiAdmin(BaseModel):
     id: int
     nome: str 
 
+class BaseEmailReste(BaseModel): email: str
+
+class BaseAltSenha(BaseModel): senha: str
+
 class ResponseDadosUser(BaseModel):
     #isso server como uma reprecentação de -> {}
     class DicReponse(BaseModel):

@@ -1,4 +1,4 @@
-from ..conection import Base
+from ..db import Base
 from sqlalchemy import Column, Integer, String,Boolean, DateTime
 from sqlalchemy.orm import relationship
 from passlib.hash import sha256_crypt as sha256
@@ -15,6 +15,7 @@ class Usuario(Base):
     _hash_senha = Column(String(255), nullable=False, name="senha")
     _email_verificado = Column(Boolean, default=False, name="email_verificado")
     _criado_em = Column(DateTime, default=datetime.now(timezone.utc),name="criado_em")
+    #_google_id = Column(String, unique=True)
 
     consumo = relationship(
         "Consumo", 
@@ -64,6 +65,14 @@ class Usuario(Base):
     def email_verificado(self, status : bool = True) -> None: 
         self._email_verificado = status
 
+    ''' 
+    @property
+    def google_id(self) -> str: return self.google_id
+
+    @google_id.setter
+    def google_id(self, _str: str) -> None: self.google_id = _str 
+    '''
+    
     #NOTE - Como não há utilidade de usar o hash da senha fora da class
     def novaSenha(self, senha) -> None: 
         self._hash_senha= sha256.encrypt(senha)

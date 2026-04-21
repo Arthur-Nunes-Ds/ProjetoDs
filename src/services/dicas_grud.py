@@ -4,9 +4,9 @@ from sqlalchemy.orm import Session
 from ..model import DicaSustentavel, Meta, Consumo
 from .erros import BeadRequeste, DuplicationTipo, ErroInesperado, NotDica, DuplicationConsumo, NotMeta
 
-def criar_dica(session: Session, Base: object) -> dict:
+def criar_dica(session: Session,nome: str, descricao: str, TIPO_CONSUMO_id : int) -> dict:
     try:
-        dica = DicaSustentavel(Base.nome, Base.descricao, Base.TIPO_CONSUMO_id)  # type: ignore
+        dica = DicaSustentavel(nome, descricao, TIPO_CONSUMO_id)  
 
         session.add(dica)
         session.commit()
@@ -17,20 +17,21 @@ def criar_dica(session: Session, Base: object) -> dict:
 
     except Exception as e:raise ErroInesperado(e, session)
 
-def editar_dica(session: Session, Base: object, id: int) -> dict:
+def editar_dica(session: Session,nome: str |None, descricao: str|None, TIPO_CONSUMO_id : int| None,
+                 id: int) -> dict:
     try:
         query = session.query(DicaSustentavel).filter_by(_id=id).first()
 
         if query is None: raise NotDica(session)
 
-        if Base.nome is None and Base.descricao is None and Base.TIPO_CONSUMO_id is None:  # type: ignore
+        if nome is None and descricao is None and TIPO_CONSUMO_id is None:  
             raise BeadRequeste(session)
 
-        if Base.nome is not None: query.nome = Base.nome  # type: ignore
+        if nome is not None: query.nome = nome  
 
-        if Base.descricao is not None: query.descricao = Base.descricao  # type: ignore
+        if descricao is not None: query.descricao = descricao  
 
-        if Base.TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = Base.TIPO_CONSUMO_id  # type: ignore
+        if TIPO_CONSUMO_id is not None: query._TIPO_CONSUMO_id = TIPO_CONSUMO_id  
 
         session.commit()
 
@@ -57,11 +58,11 @@ def excluir_dica(session: Session, id: int) -> dict:
     
     except Exception as e: raise ErroInesperado(e, session)
 
-def mostra_dica(session: Session, id_user: int, Base: object) -> dict:
+def mostra_dica(session: Session, id_user: int, tipo_consumo_id:int) -> dict:
     try:
         meta_query = session.query(Meta).filter_by(_USUARIO_id=id_user)
         
-        meta_query = meta_query.filter_by(_TIPO_CONSUMO_id=Base.tipo_consumo_id) # type: ignore
+        meta_query = meta_query.filter_by(_TIPO_CONSUMO_id=tipo_consumo_id) 
         
         meta = meta_query.order_by(Meta._id.desc()).first()
         

@@ -178,9 +178,4 @@ pyrightconfig.json
 
 .vscode*
 
-#arquivos de certificados(https)/temp
-src/certs/cert.pem
-src/certs/key.pem
-
-src/temp/.sgu_config.json
-src/temp/banco.db
+certbot*
