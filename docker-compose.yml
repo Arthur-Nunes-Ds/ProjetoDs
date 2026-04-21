@@ -55,48 +55,6 @@ services:
       redis:
         condition: service_healthy
 
-  #HTPSS
-  nginx:
-    image: nginx:latest
-    container_name: nginx_proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - BACK_END=${BACK_END}
-    volumes:
-      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    # Usando | para preservar formatação e comando openssl em linha única
-    command: |
-      /bin/sh -c "
-      if [ ! -f /etc/letsencrypt/live/${BACK_END}/fullchain.pem ]; then
-        echo 'Gerando certificado temporário...' &&
-        mkdir -p /etc/letsencrypt/live/${BACK_END} &&
-        openssl req -x509 -nodes -newkey rsa:2048 -days 1 -keyout /etc/letsencrypt/live/${BACK_END}/privkey.pem -out /etc/letsencrypt/live/${BACK_END}/fullchain.pem -subj '/CN=localhost';
-      fi;
-      nginx -g 'daemon off;' &
-      while :; do sleep 6h & wait $${!}; nginx -s reload; done"
-    depends_on:
-      - backend_python
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: certbot_renova_certs
-    restart: unless-stopped
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    # Comando certbot colocado em linha única para evitar quebra de argumentos
-    entrypoint: |
-      /bin/sh -c "
-      trap exit TERM;
-      sleep 10;
-      certbot certonly --webroot -w /var/www/certbot --cert-name ${BACK_END} -d ${BACK_END} --email ${EMAIL_GOOGLE} --agree-tos --non-interactive || true;
-      while :; do certbot renew; sleep 12h & wait $${!}; done"
-
 volumes:
   mysql_data:
   redis_data:
