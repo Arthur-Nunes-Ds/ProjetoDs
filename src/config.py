@@ -85,12 +85,6 @@ if not RESETAR_SENHA or not RESETAR_SENHA.strip():
     class RestarEmail(Exception): pass
     raise RestarEmail("O sitema precisa do RESETAR_SENHA nas var de abiente/ .env")
 
-BACK_END = getenv('RESETAR_SENHA')
-
-if not BACK_END or not BACK_END.strip():
-    class BackEnd(Exception): pass
-    raise BackEnd("O sitema precisa do BACK_END nas var de abiente/ .env")
-
 
 ALLOW_ORIGINS = getenv('ALLOW_ORIGINS', ['*'])
 if ALLOW_ORIGINS is str:
