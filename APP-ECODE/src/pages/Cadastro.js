@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react'; 
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native'; 
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'; 
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
 import { AntDesign } from '@expo/vector-icons'; 
-// Usando o Gradiente e o BlurView para um visual moderno
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur'; 
+
+// Importação do Axios
+import axios from 'axios';
 
 // Mocks do Google/Firebase mantidos
 const GoogleSignin = {}; 
 const auth = () => ({});
 
 const MODO_EXPO_GO = true; 
+const API_URL = 'https://api.2dsmoca.tech';
 
-export default function Login({ navigation }) {
+export default function Cadastro({ navigation }) {
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [nome, setNome] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Estado de carregamento
 
   useEffect(() => {
     if (!MODO_EXPO_GO) {
@@ -31,6 +35,71 @@ export default function Login({ navigation }) {
   });
 
   if (!fontsLoaded) return null;
+
+  // Função de Cadastro Integrada com o Backend
+  const fazerCadastro = async () => {
+    // Validação de campos vazios
+    if (!nome || !email || !senha) {
+      Alert.alert('Atenção', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Montando o payload esperado pelo backend (BaseCriarUsuario)
+      const payload = {
+        nome: nome.trim(),
+        email: email.trim().toLowerCase(),
+        senha: senha
+      };
+
+      // Requisição POST em formato JSON
+      await axios.post(`${API_URL}/public/Criar_Conta`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      // Sucesso
+      Alert.alert('Sucesso!', 'Sua conta foi criada. Faça o login para continuar.', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') }
+      ]);
+      
+      // Limpa os campos
+      setNome('');
+      setEmail('');
+      setSenha('');
+
+    } catch (error) {
+      console.log('Erro no cadastro:', error);
+
+      if (error.response) {
+        // Tratamento de erros detalhado com base no Swagger
+        switch (error.response.status) {
+          case 409:
+            Alert.alert('Conflito', 'Já existe uma conta cadastrada com este e-mail.');
+            break;
+          case 422:
+            Alert.alert('Dados Inválidos', 'Verifique se o formato do e-mail ou senha estão corretos.');
+            break;
+          case 501:
+          case 503:
+            Alert.alert('Aviso', 'Conta criada, mas o serviço de e-mail está indisponível no momento.');
+            break;
+          case 500:
+            Alert.alert('Erro no Servidor', 'Ocorreu um erro interno. Tente novamente mais tarde.');
+            break;
+          default:
+            Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
+        }
+      } else {
+        Alert.alert('Erro de Conexão', 'Verifique sua conexão com a internet e tente novamente.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fazerLoginGoogle = async () => {
     if (MODO_EXPO_GO) {
@@ -53,14 +122,11 @@ export default function Login({ navigation }) {
   }
 
   return (
-    // 1. Substituí a View principal pelo LinearGradient
     <LinearGradient colors={['#1A2980', '#26D0CE']} style={styles.fundo}>
-      
-      {/* 2. Transformei a 'caixa' em um BlurView para o efeito de vidro */}
       <BlurView intensity={30} tint="light" style={styles.caixa}>
         
         <View style={styles.cabecalho}>
-          <Text style={styles.titulo}>Bem-vindo</Text>
+          <Text style={styles.titulo}>Criar Conta</Text>
           <Text style={styles.sub_titulo}>Ecode Project</Text>
         </View>
         
@@ -71,6 +137,7 @@ export default function Login({ navigation }) {
           placeholderTextColor="#d7d7d7"
           value={nome}
           onChangeText={setNome}
+          autoCapitalize="words"
         />
 
         <Text style={styles.label}>Email</Text>
@@ -80,6 +147,8 @@ export default function Login({ navigation }) {
           placeholderTextColor="#d7d7d7"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
         />
         
         <Text style={styles.label}>Senha</Text>
@@ -92,8 +161,16 @@ export default function Login({ navigation }) {
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.botao_redondo}>
-            <Text style={styles.texto_botao}>Entrar</Text>
+        <TouchableOpacity 
+          style={styles.botao_redondo} 
+          onPress={fazerCadastro}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#1A2980" />
+          ) : (
+            <Text style={styles.texto_botao}>Cadastrar</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.divisorContainer}>
@@ -122,12 +199,10 @@ export default function Login({ navigation }) {
 const styles = StyleSheet.create({
   fundo: {
     flex: 1,
-    // Removida a cor sólida para o gradiente aparecer
     justifyContent: 'center', 
     alignItems: 'center',
   },
   caixa: {
-    // Efeito Glassmorphism
     backgroundColor: 'rgba(255, 255, 255, 0.1)', 
     width: 350,
     paddingVertical: 40, 
@@ -135,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    overflow: 'hidden', // Importante para o BlurView respeitar as bordas arredondadas
+    overflow: 'hidden', 
   },
   cabecalho: {
     marginBottom: 40, 
@@ -154,8 +229,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
   },
-  
-  // ESTILO ADICIONADO: Faltava o estilo da label
   label: {
     color: '#fff',
     fontFamily: 'Ubuntu_400Regular',
@@ -163,10 +236,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginLeft: 5,
   },
-
-  // ESTILO DAS CAIXAS DE ENTRADA
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Ajustado para combinar com o vidro
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -179,20 +250,19 @@ const styles = StyleSheet.create({
   botao_redondo:{
     borderRadius:50,
     backgroundColor:'#ffffff',
-    padding:15, // Ajustado padding para ficar mais proporcional
-    width: '100%', // Agora ele ocupa toda a largura da caixa, fica mais elegante
+    padding:15, 
+    width: '100%', 
     marginVertical:10, 
     alignSelf:'center',
     justifyContent: 'center', 
+    height: 55, // Previne pulos de UI quando o loading é ativado
   },
   texto_botao:{
-    color:'#1A2980', // Cor do texto do botão combinando com o fundo
+    color:'#1A2980', 
     fontSize: 18,
     fontFamily: 'Ubuntu_400Regular',
     textAlign:'center',
   },
-
-  // ESTILOS DO DIVISOR
   divisorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,15 +271,13 @@ const styles = StyleSheet.create({
   linha: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Linha levemente transparente
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', 
   },
   textoDivisor: {
     color: '#fff',
     marginHorizontal: 10,
     fontFamily: 'Ubuntu_300Light',
   },
-
-  // ESTILOS DO BOTÃO DO GOOGLE
   botaoGoogle: {
     backgroundColor: '#fff',
     borderRadius: 50, 
@@ -225,8 +293,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10, 
   },
-
-  // ESTILOS DA ÁREA DE CADASTRO
   containerCadastro: {
     flexDirection: 'row', 
     justifyContent: 'center', 
@@ -242,6 +308,6 @@ const styles = StyleSheet.create({
   texto_cadastro_link:{
     color:'#fff',
     fontSize:15,
-    fontFamily: 'Ubuntu_400Regular', // Usando a fonte bold
+    fontFamily: 'Ubuntu_400Regular', 
   },
 });

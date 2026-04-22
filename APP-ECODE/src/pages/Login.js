@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react'; 
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native'; 
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'; 
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
 import { AntDesign } from '@expo/vector-icons'; 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur'; 
 
+// Importações adicionadas para a integração
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const GoogleSignin = {}; 
 const auth = () => ({});
 
 const MODO_EXPO_GO = true; 
+const API_URL = 'https://api.2dsmoca.tech'; // Removida a barra final para evitar duplicidade de barras na URL
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Novo estado de carregamento
 
   useEffect(() => {
     if (!MODO_EXPO_GO) {
@@ -28,6 +34,59 @@ export default function Login({ navigation }) {
   });
 
   if (!fontsLoaded) return null;
+
+  // Função de Login Integrada com o Backend
+  const fazerLogin = async () => {
+    // Validação básica de campos vazios
+    if (!email || !senha) {
+      Alert.alert('Atenção', 'Por favor, preencha seu e-mail e senha.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Formatando os dados para application/x-www-form-urlencoded
+      const formBody = `username=${encodeURIComponent(email)}&password=${encodeURIComponent(senha)}`;
+
+      const response = await axios.post(`${API_URL}/public/Logar_Conta`, formBody, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+
+      // Extraindo o token e salvando no dispositivo
+      const token = response.data.access_token;
+      await AsyncStorage.setItem('@jwt_token', token);
+
+      console.log('Login efetuado com sucesso!');
+      
+      // Limpa os campos após o login (opcional)
+      setEmail('');
+      setSenha('');
+
+      // Redireciona para a próxima tela autenticada
+      navigation.navigate('Teste'); 
+
+    } catch (error) {
+      console.log('Erro no login:', error);
+
+      if (error.response) {
+        // Tratamento de erros previstos no Swagger
+        if (error.response.status === 404) {
+          Alert.alert('Falha no Login', 'Usuário não verificado, email ou senha inválidos.');
+        } else if (error.response.status === 422) {
+          Alert.alert('Erro de Validação', 'Formato de dados enviado é inválido.');
+        } else {
+          Alert.alert('Erro no Servidor', 'Ocorreu um erro interno (500). Tente novamente mais tarde.');
+        }
+      } else {
+        Alert.alert('Erro de Conexão', 'Não foi possível se conectar ao servidor. Verifique sua internet.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fazerLoginGoogle = async () => {
     if (MODO_EXPO_GO) {
@@ -50,10 +109,7 @@ export default function Login({ navigation }) {
   }
 
   return (
-    // 1. Substituí a View principal pelo LinearGradient
     <LinearGradient colors={['#1A2980', '#26D0CE']} style={styles.fundo}>
-      
-      {/* 2. Transformei a 'caixa' em um BlurView para o efeito de vidro */}
       <BlurView intensity={30} tint="light" style={styles.caixa}>
         
         <View style={styles.cabecalho}>
@@ -68,6 +124,8 @@ export default function Login({ navigation }) {
           placeholderTextColor="#d7d7d7"
           value={email}
           onChangeText={setEmail}
+          autoCapitalize="none" 
+          keyboardType="email-address" // Facilita o preenchimento no teclado móvel
         />
         
         <Text style={styles.label}>Senha</Text>
@@ -80,8 +138,16 @@ export default function Login({ navigation }) {
           onChangeText={setSenha}
         />
 
-        <TouchableOpacity style={styles.botao_redondo}>
+        <TouchableOpacity 
+          style={styles.botao_redondo} 
+          onPress={fazerLogin}
+          disabled={isLoading} // Impede múltiplos cliques acidentais
+        >
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#1A2980" />
+          ) : (
             <Text style={styles.texto_botao}>Entrar</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.divisorContainer}>
@@ -110,12 +176,10 @@ export default function Login({ navigation }) {
 const styles = StyleSheet.create({
   fundo: {
     flex: 1,
-    // Removida a cor sólida para o gradiente aparecer
     justifyContent: 'center', 
     alignItems: 'center',
   },
   caixa: {
-    // Efeito Glassmorphism
     backgroundColor: 'rgba(255, 255, 255, 0.1)', 
     width: 350,
     paddingVertical: 40, 
@@ -123,7 +187,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-    overflow: 'hidden', // Importante para o BlurView respeitar as bordas arredondadas
+    overflow: 'hidden', 
   },
   cabecalho: {
     marginBottom: 40, 
@@ -142,8 +206,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: 'center',
   },
-  
-  // ESTILO ADICIONADO: Faltava o estilo da label
   label: {
     color: '#fff',
     fontFamily: 'Ubuntu_400Regular',
@@ -151,10 +213,8 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     marginLeft: 5,
   },
-
-  // ESTILO DAS CAIXAS DE ENTRADA
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)', // Ajustado para combinar com o vidro
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.5)',
@@ -167,20 +227,19 @@ const styles = StyleSheet.create({
   botao_redondo:{
     borderRadius:50,
     backgroundColor:'#ffffff',
-    padding:15, // Ajustado padding para ficar mais proporcional
-    width: '100%', // Agora ele ocupa toda a largura da caixa, fica mais elegante
+    padding:15, 
+    width: '100%', 
     marginVertical:10, 
     alignSelf:'center',
     justifyContent: 'center', 
+    height: 55, // Fixado para evitar "pulos" de layout quando vira ActivityIndicator
   },
   texto_botao:{
-    color:'#1A2980', // Cor do texto do botão combinando com o fundo
+    color:'#1A2980', 
     fontSize: 18,
     fontFamily: 'Ubuntu_400Regular',
     textAlign:'center',
   },
-
-  // ESTILOS DO DIVISOR
   divisorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -189,15 +248,13 @@ const styles = StyleSheet.create({
   linha: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Linha levemente transparente
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', 
   },
   textoDivisor: {
     color: '#fff',
     marginHorizontal: 10,
     fontFamily: 'Ubuntu_300Light',
   },
-
-  // ESTILOS DO BOTÃO DO GOOGLE
   botaoGoogle: {
     backgroundColor: '#fff',
     borderRadius: 50, 
@@ -213,8 +270,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10, 
   },
-
-  // ESTILOS DA ÁREA DE CADASTRO
   containerCadastro: {
     flexDirection: 'row', 
     justifyContent: 'center', 
@@ -230,6 +285,6 @@ const styles = StyleSheet.create({
   texto_cadastro_link:{
     color:'#fff',
     fontSize:15,
-    fontFamily: 'Ubuntu_400Regular', // Usando a fonte bold
+    fontFamily: 'Ubuntu_400Regular', 
   },
 });
