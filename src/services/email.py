@@ -20,8 +20,8 @@ def is_valido_dns(email: str) -> bool:
 
 async def enviar_email(email: str, session : Session, is_rest_senha: bool = False)-> dict :
     MSG = {
-    "CONTEUDO_MSG" : ["confirmar seu email","resertar sua senha"],
-    "SUBJECT" : ['Confirmação de Email', 'Resertar email'],
+    "CONTEUDO_MSG" : ["confirmar seu email","resetar sua senha"],
+    "SUBJECT" : ['Confirmação de Email', 'Resetar email'],
     "URL": [VERIFICAR_EMAIL, RESETAR_SENHA]
     }
     
@@ -49,7 +49,7 @@ async def enviar_email(email: str, session : Session, is_rest_senha: bool = Fals
         <head> \n
             <meta charset="UTF-8">\n
         </head>\n
-        <!-- Arquivo Html só Para deixar o email mas bonito e com toque de proficonalismo -->\n
+        <!-- Arquivo Html só Para deixar o email mas bonito e com toque de profissionalismo -->\n
         <body style="font-family: Arial, sans-serif; padding: 20px; \n
             background: linear-gradient(118deg,rgba(125, 0, 251, 1) 17%,\n
             rgba(0, 0, 0, 1) 89%); color: azure; width: 100%; height: 300px;">\n
@@ -59,7 +59,7 @@ async def enviar_email(email: str, session : Session, is_rest_senha: bool = Fals
                 <h3 style="color: #4CAF50; font-size: 24px;">\n
                     <a href="{url} ">click-me</a></h3>\n
             </div>\n
-            <p>Esse email foi gerado altomaticamente. Não o responda.\n
+            <p>Esse email foi gerado automaticamente. Não responda.\n
                 Atenciosamente,\n
             <br>Equipe da EchoDE Ecologic Tech</p>\n
         </body>\n
@@ -101,7 +101,7 @@ def verificar_email(token: str, session: Session) -> dict:
         if query is None: raise NoteUserSenha(session)
         query.email_verificado = True       
         session.commit()   
-        return {'mensagem':"Email convirmado com sucesso"}
+        return {'mensagem':"Email confirmado com sucesso"}
 
     except (JwtNotEmail, NoteUserSenha, JwtInvalido): raise 
 

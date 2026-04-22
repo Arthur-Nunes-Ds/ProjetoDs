@@ -9,7 +9,7 @@ from .consumo import Rotas_Consumo
 from ..schemas import Reposne500
 
 manger_route = APIRouter(responses={
-    422:{"description":"Pasrametro do Request body invalido"},
+    422:{"description":"Parametro do Request body invalido"},
     500:{"description":"Erro interno no servidor",
          "model":Reposne500}
 })

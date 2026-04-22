@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
     except erros.DuplicationUser: session.close()
     except erros.ErroInesperado:
         session.rollback()
-        print("Server -> algo deu erra ao criar o admin. Finalizando a API")
+        print("Server -> algo deu errado ao criar o admin. Finalizando a API")
         #finaliza a API
         exit(1)
     finally:
@@ -43,7 +43,7 @@ app = FastAPI(
             "name": "Cliente",
             "description": """
             Operações relacionadas aos usuários. Permite consultar, editar e deletar contas de usuário. \n
-            Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
+            Todos EndPoint que tiver um cadeado devem receber o JWT no Heard \n \
             """
         },
         {
@@ -56,22 +56,22 @@ app = FastAPI(
         {
             "name":"Tipo Consumo",
             "description":"""
-            Operações relacionadas ao CRUD do Tipo de Consumo só o Adm pode altera esse tipo. \n \
-            Todos EndPoint que tiver um cateado devem receber o JWT no Heard \n \
+            Operações relacionadas ao CRUD do Tipo de Consumo só o Adm pode alterar esse tipo. \n \
+            Todos EndPoint que tiver um cadeado devem receber o JWT no Heard \n \
             """
         },
         {
             "name":"Consumo",
             "description":"""
             Operações relaciondas ao CRUD do Consumo do User \n \
-            Todos EndPoint deve receber o JWT no Heard \n \
+            Todos EndPoint devem receber o JWT no Heard \n \
             """
         },
         {
             "name":"Dicas",
             "description":"""
             Operações relaciondas as Dicas de Redução de Gasto \n \
-            Todos EndPoint deve receber o JWT no Heard \n \
+            Todos EndPoint devem receber o JWT no Heard \n \
             """
         }
     ]

@@ -10,7 +10,7 @@ Rotas_Meta = APIRouter(
             "description": "Não há Meta cadastrada com esse id",
         },
         401: {
-            "description": "Não Altorizado",
+            "description": "Não Autorizado",
         },
     }
 )

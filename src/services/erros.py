@@ -167,7 +167,7 @@ class AdminActionNotAllowed(HTTPException):
 
         super().__init__(
             status_code=403,
-            detail= "Essa opeção não pode excutar por admin."
+            detail= "Essa opção não pode excutar por admin."
         )
 
 class CannotChangeAdmin(HTTPException):
@@ -184,7 +184,7 @@ class JustAdmin(HTTPException):
     def __init__(self):
         super().__init__(
             status_code=403,
-            detail= "Essa opeção só pode ser excutada por admin."
+            detail= "Essa opção só pode ser excutada por admin."
         )
         
 class BeadRequeste(HTTPException):
@@ -193,7 +193,7 @@ class BeadRequeste(HTTPException):
 
         super().__init__(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Falata requisto'
+            detail='Falta requisto'
         )
 
 

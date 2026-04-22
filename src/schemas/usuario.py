@@ -4,7 +4,7 @@ from datetime import datetime
 class BaseCriarUsuario(BaseModel):
     nome: str
     senha: str
-    #ver o formtato(se tem: "@",".", se tá na possição correta)
+    #ver o formato(se tem: "@",".", se tá na possição correta)
     email: EmailStr
 
 class ResponseLogarUser(BaseModel):
@@ -25,7 +25,7 @@ class BaseEmailReste(BaseModel): email: str
 class BaseAltSenha(BaseModel): senha: str
 
 class ResponseDadosUser(BaseModel):
-    #isso server como uma reprecentação de -> {}
+    #isso server como uma representação de -> {}
     class DicReponse(BaseModel):
         nome: str
         email : str

@@ -24,7 +24,7 @@ Rotas_Publics = APIRouter()
                     })
 async def Criar_Conta(base: BaseCriarUsuario,
                       session: Session = Depends(get_sesion)):
-    #documentação para de como usar há api
+    #documentação de como usar a api
     """\nCria um novo cliente no sistema."""
     
     resut_conta = criar_conta(base.nome,base.senha,base.email, session)
@@ -53,7 +53,7 @@ async def Email_Restar_Senha(email: str,
                         "description":"Não há User Verificado com esse Email"
                     },
                     401:{
-                        "description":"Não Altorizado"
+                        "description":"Não Autorizado"
                     },
                     403:{
                         "description":"Esse JWT não é valido para essa operação."
@@ -62,7 +62,7 @@ async def Email_Restar_Senha(email: str,
 async def Alterar_Senha(jwt : str ,base: BaseAltSenha, 
                         session: Session = Depends(get_sesion)):
     """\n Alterar a senha de fato \n \
-        Necessaio passa o jwt que vai para o email do client."""
+        Necessário passa o jwt que vai para o email do cliente."""
 
     return await verificar_email_senha(jwt, base.senha, session)
 
@@ -76,7 +76,7 @@ async def Alterar_Senha(jwt : str ,base: BaseAltSenha,
 #OAuth2PasswordRequestForm: padrão do FastAPI para fazer autenticação mais simples no /docs
 async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(), 
                       session: Session = Depends(get_sesion)):
-    '''\nRealiza o login do cliente e retorna um token JWT. \n \n \
+    '''\n Realiza o login do cliente e retorna um token JWT. \n \n \
     O username = email \n \n \
     O password = senha \n \n \
     '''
@@ -97,9 +97,6 @@ async def Logar_Conta(base: OAuth2PasswordRequestForm = Depends(),
                        }
                    })
 async def Verificar_Email(jwt : str, session: Session = Depends(get_sesion)):
-   '''\nVerifica o linck(jwt) do email do user.'''
+   '''\n Verifica o link(jwt) do email do user.'''
 
    return verificar_email(jwt, session)
-
-
-

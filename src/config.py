@@ -29,7 +29,7 @@ SECRETES_KEY = getenv('SECRETES_KEY')
 #Ver se a SECRETES_KEY existe nas var de abiente/ .env e se ela tem algum conteudo de fato
 if not SECRETES_KEY or not SECRETES_KEY.strip():
     class SecretKeyError(Exception): pass
-    raise SecretKeyError('O sistema precisa da SECRETES_KEY do JWT nas var de abiente/ .env com um valor válido')
+    raise SecretKeyError('O sistema precisa da SECRETES_KEY do JWT nas var de ambiente/ .env com um valor válido')
     
 ALG = getenv('ALG')
 if ALG == None:
@@ -65,7 +65,7 @@ def tipo_de_timer(escolha: str):
 
 EXPIRATION_TIMER_JWT_TIPO = getenv("EXPIRATION_TIMER_JWT_TIPO")
 if EXPIRATION_TIMER_JWT_TIPO == None:
-    print("erro na hora de pega o tipode duração o padrão sera MM(minutos)")
+    print("erro na hora de pega o tipo de duração o padrão sera MM(minutos)")
     EXPIRATION_TIMER_JWT_TIPO = "MM"
 else:
     timer = tipo_de_timer(EXPIRATION_TIMER_JWT_TIPO)
@@ -77,13 +77,13 @@ VERIFICAR_EMAIL = getenv('VERIFICAR_EMAIL')
 
 if not VERIFICAR_EMAIL or not VERIFICAR_EMAIL.strip():
     class VerificarEmail(Exception): pass
-    raise VerificarEmail("O sitema precisa do RESETAR_SENHA nas var de abiente/ .env")
+    raise VerificarEmail("O sistema precisa do RESETAR_SENHA nas var de abiente/ .env")
 
 RESETAR_SENHA = getenv('RESETAR_SENHA')
 
 if not RESETAR_SENHA or not RESETAR_SENHA.strip():
     class RestarEmail(Exception): pass
-    raise RestarEmail("O sitema precisa do RESETAR_SENHA nas var de abiente/ .env")
+    raise RestarEmail("O sistema precisa do RESETAR_SENHA nas var de abiente/ .env")
 
 
 ALLOW_ORIGINS = getenv('ALLOW_ORIGINS', ['*'])
@@ -112,12 +112,12 @@ EMAIL_REDE = getenv("EMAIL_REDE", None)
 try:
     EXPIRATION_TIMER_MINUTES_EMAIL = int(getenv('EXPIRATION_TIMER_MINUTES_EMAIL', '5'))# type: ignore
 except ValueError:
-    print('erro na hora de carrega o tempo de exepiração do jwt o padrão dela vai ser 5 minutos')
+    print('erro na hora de carregar o tempo de expiração do jwt o padrão dela vai ser 5 minutos')
     EXPIRATION_TIMER_MINUTES_EMAIL = 5
 #!SECTION
 
 REDIS_PASSWORD = getenv("REDIS_PASSWORD")
 if not REDIS_PASSWORD or not REDIS_PASSWORD.strip():
     class RedisPassword(Exception): pass
-    raise RedisPassword("O sitema precisa do REDIS_PASSWORD nas var de abiente/ .env")
+    raise RedisPassword("O sistema precisa do REDIS_PASSWORD nas var de abiente/ .env")
 

@@ -11,7 +11,7 @@ Rotas_User = APIRouter(
             "description":"Não há User Verificado com esse Email/Senha Invalida"
         },
         401:{
-            "description":"Não Altorizado"
+            "description":"Não Autorizado"
         }
     }
 )

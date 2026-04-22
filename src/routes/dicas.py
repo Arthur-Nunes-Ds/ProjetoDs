@@ -52,7 +52,7 @@ async def Lista_Dica(
     id: int, _: int = Depends(verificar_jwt_admin),
     session: Session = Depends(get_sesion),
 ):
-    """Mostra todas as ticas."""
+    """Mostra todas as dicas."""
 
     return list_dica(session,)
 

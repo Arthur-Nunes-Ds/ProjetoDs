@@ -10,7 +10,7 @@ Rotas_Consumo = APIRouter(
             "description": "Não há Consumo cadastrado com esse id",
         },
         401: {
-            "description": "Não Altorizado",
+            "description": "Não Autorizado",
         },
     }
 )

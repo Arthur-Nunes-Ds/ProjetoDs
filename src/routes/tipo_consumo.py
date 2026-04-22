@@ -7,10 +7,10 @@ from ..services import criar_tipo, del_tipo, editar_tipo, show_tipo, verificar_j
 Rotas_Tipo_Consumo = APIRouter(
     responses={
         404: {
-            "description": "Não há Tipo de Consumo cadastrado com esse id",
+            "description": "Não há um Tipo de Consumo cadastrado com esse id",
         },
         409: {
-            "description": "Já existe um tipo de consumo desse tipo",
+            "description": "Já existe um Tipo de Consumo desse tipo",
         },
     },
     dependencies=[Depends(verificar_jwt_admin)]
