@@ -156,9 +156,9 @@ export default function Login({ navigation }) {
           <View style={styles.linha} />
         </View>
 
-        <TouchableOpacity style={styles.botaoGoogle} onPress={fazerLoginGoogle}>
-          <AntDesign name="google" size={24} color="#DB4437" />
-          <Text style={styles.textoBotaoGoogle}>Continuar com o Google</Text>
+        <TouchableOpacity style={styles.botaoGoogle} onPress={navigation.navigate('VerificarEmail')}>
+          <AntDesign name="verificar" size={24} color="#DB4437" />
+          <Text style={styles.textoBotaoGoogle}>Verificar Email</Text>
         </TouchableOpacity>
 
         <View style={styles.containerCadastro}>

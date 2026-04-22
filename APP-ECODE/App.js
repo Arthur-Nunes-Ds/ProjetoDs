@@ -8,6 +8,7 @@ import Detalhes from './src/pages/Detalhes';
 import Login from './src/pages/Login';
 import Cadastro from './src/pages/Cadastro';
 import Cadastro_Consumo from './src/pages/Cadastro_Consumo';
+import VerificarEmail from './src/pages/Verificar_Email';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +40,12 @@ export default function App() {
           name="Cadastro" 
           component={Cadastro} // Usando o componente importado
           options={{ title: 'Cadastro' }} 
+        />
+
+        <Stack.Screen 
+          name="VerificarEmail" 
+          component={VerificarEmail} // Usando o componente importado
+          options={{ title: 'Verificar Email' }} 
         />
 
         <Stack.Screen 
