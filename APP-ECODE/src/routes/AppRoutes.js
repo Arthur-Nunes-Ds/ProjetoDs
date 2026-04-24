@@ -9,6 +9,8 @@ import RegisterScreen from '../screens/RegisterScreen';
 import RegisterConsumptionScreen from '../screens/RegisterConsumptionScreen';
 import VerifyEmailScreen from '../screens/VerifyEmailScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import AccountScreen from '../screens/AccountScreen';
+import CreateGoalScreen from '../screens/CreateGoalScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -52,6 +54,16 @@ export default function AppRoutes() {
         name="Cadastro_Consumo" 
         component={RegisterConsumptionScreen} 
         options={{ title: 'Cadastro Consumo' }} 
+      />
+      <Stack.Screen 
+        name="Account" 
+        component={AccountScreen} 
+        options={{ title: 'Minha Conta' }} 
+      />
+      <Stack.Screen 
+        name="CreateGoal" 
+        component={CreateGoalScreen} 
+        options={{ title: 'Criar Meta' }} 
       />
     </Stack.Navigator>
   );

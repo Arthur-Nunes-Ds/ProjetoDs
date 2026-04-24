@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BarChart, LineChart } from 'react-native-chart-kit';
-import { Menu, X, Plus, Settings, HelpCircle, Activity, User, ArrowLeft } from 'lucide-react-native';
+import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut } from 'lucide-react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 // Importações do projeto reestruturado
@@ -103,15 +104,32 @@ export default function DetailsScreen({ navigation }) {
         else if (nome.includes('gas') || nome.includes('gás')) gasSum += item.valor;
       });
 
-      // 3. Processar metas
-      const metaEnergia = metas.find(m => m.tipoConsumo && m.tipoConsumo.toLowerCase().includes('energia'))?.valorMeta || 80;
+      // 4. Buscar Dicas (de forma resiliente)
+      let dicaSustentavel = "Economize energia desligando aparelhos em stand-by.";
+      try {
+        const resDica = await api.get('/public/Listar_Dicas'); // Tentando endpoint público primeiro
+        const dicas = resDica.data.mensagem || [];
+        if (dicas.length > 0) {
+          dicaSustentavel = dicas[Math.floor(Math.random() * dicas.length)].descricao || dicas[0];
+        }
+      } catch (e) { 
+        console.log('Erro ao buscar dicas:', e.message); 
+        // Tentativa 2: endpoint protegido
+        try {
+          const resDica = await api.get('/dica/Listar_Dicas', { headers: { Authorization: `Bearer ${token}` } });
+          const dicas = resDica.data.mensagem || [];
+          if (dicas.length > 0) {
+            dicaSustentavel = dicas[Math.floor(Math.random() * dicas.length)].descricao || dicas[0];
+          }
+        } catch (e2) { console.log('Erro ao buscar dicas (auth):', e2.message); }
+      }
 
       setDados({
         energia: energiaSum,
         agua: aguaSum,
         residuos: gasSum,
         metaEnergia: metaEnergia,
-        dica: "Use lâmpadas LED para economizar até 80% de energia em comparação com as incandescentes.",
+        dica: dicaSustentavel,
         historicoSemestral: historico
       });
 
@@ -126,6 +144,11 @@ export default function DetailsScreen({ navigation }) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('@jwt_token');
+    navigation.replace('Login');
   };
 
   // useFocusEffect garante que a API seja chamada toda vez que a tela ganha foco
@@ -175,25 +198,35 @@ export default function DetailsScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('Account'); }}>
                 <User color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Minha Conta</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('CreateGoal'); }}>
                 <Activity color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Ações e Metas</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); Alert.alert('Suporte', 'Central de ajuda em desenvolvimento. Contato: suporte@ecode.com'); }}>
                 <HelpCircle color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Ajuda e Suporte</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.menuItem}>
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('Account'); }}>
                 <Settings color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Configurações</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
+                <LogOut color="#f87171" size={22} />
+                <Text style={[styles.menuItemText, { color: '#f87171' }]}>Sair</Text>
+              </TouchableOpacity>
+
+              <View style={styles.sideMenuFooter}>
+                <Text style={styles.versionText}>EcoMonitor v1.0.4</Text>
+                <Text style={styles.companyText}>ECODE Project © 2026</Text>
+              </View>
             </View>
           </View>
         </Modal>
@@ -202,7 +235,7 @@ export default function DetailsScreen({ navigation }) {
           
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.hamburgerBtn}>
-              <ArrowLeft color="#fff" size={28} />
+              <AntDesign name="left" color="#fff" size={28} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>EcoMonitor</Text>
             <TouchableOpacity onPress={() => setIsMenuOpen(true)} style={styles.hamburgerBtn}>
@@ -337,6 +370,9 @@ const styles = StyleSheet.create({
   sideMenuTitle: { color: '#fff', fontSize: 22, fontWeight: 'bold', fontFamily: 'UBUNTU-400Regular' },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, marginBottom: 10 },
   menuItemText: { color: '#e4e4e7', fontSize: 18, marginLeft: 15, fontWeight: '500', fontFamily: 'UBUNTU-400Regular' },
+  sideMenuFooter: { marginTop: 'auto', paddingTop: 20, borderTopWidth: 1, borderTopColor: '#27272a', alignItems: 'center' },
+  versionText: { color: '#71717a', fontSize: 12, fontFamily: 'UBUNTU-400Regular' },
+  companyText: { color: '#52525b', fontSize: 10, marginTop: 5, fontFamily: 'UBUNTU-400Regular' },
   btnCadastrarContainer: { marginBottom: 25 },
   btnCadastrar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, borderRadius: 16, elevation: 3, shadowColor: '#ec4899', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
   btnCadastrarIcon: { marginRight: 10 },
