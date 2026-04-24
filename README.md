@@ -26,6 +26,7 @@ Uma equipe multidisciplinar com funções estrategicamente definidas para garant
 * **Guilherme Martins Coelho Vilmar:** Desenvolvedor Front-end e UI/UX. [![GitHub](https://img.shields.io/badge/GitHub-@Guimcv1-blue?style=flat-square&logo=github)](https://github.com/Guimcv1)
 * **João Victor de Amorim:** Modelagem e Administração de Banco de Dados. [![GitHub](https://img.shields.io/badge/GitHub-@joaovitor--afk-blue?style=flat-square&logo=github)](https://github.com/joaovitor-afk)
 
+
 # Licença
 Este projeto está licenciado sob de uso de softaware - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
