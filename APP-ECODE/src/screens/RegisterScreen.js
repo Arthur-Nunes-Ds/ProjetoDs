@@ -1,44 +1,27 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState } from 'react'; 
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'; 
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
 import { AntDesign } from '@expo/vector-icons'; 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur'; 
 
-// Importação do Axios
-import axios from 'axios';
+// Importações do projeto reestruturado
+import { authService } from '../services/authService';
 
-// Mocks do Google/Firebase mantidos
-const GoogleSignin = {}; 
-const auth = () => ({});
-
-const MODO_EXPO_GO = true; 
-const API_URL = 'https://api.2dsmoca.tech';
-
-export default function Cadastro({ navigation }) {
+export default function RegisterScreen({ navigation }) {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Estado de carregamento
+  const [isLoading, setIsLoading] = useState(false); 
 
-  useEffect(() => {
-    if (!MODO_EXPO_GO) {
-      GoogleSignin.configure({
-        webClientId: '331879954859-8njdnh9tuuraooo0cit8l9dovrg2ar5e.apps.googleusercontent.com', 
-      });
-    }
-  }, []);
-
-  let [fontsLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     Ubuntu_300Light,
     Ubuntu_400Regular,
   });
 
   if (!fontsLoaded) return null;
 
-  // Função de Cadastro Integrada com o Backend
   const fazerCadastro = async () => {
-    // Validação de campos vazios
     if (!nome || !email || !senha) {
       Alert.alert('Atenção', 'Por favor, preencha todos os campos.');
       return;
@@ -47,35 +30,19 @@ export default function Cadastro({ navigation }) {
     setIsLoading(true);
 
     try {
-      // Montando o payload esperado pelo backend (BaseCriarUsuario)
-      const payload = {
-        nome: nome.trim(),
-        email: email.trim().toLowerCase(),
-        senha: senha
-      };
+      await authService.register(nome, email, senha);
 
-      // Requisição POST em formato JSON
-      await axios.post(`${API_URL}/public/Criar_Conta`, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Sucesso
       Alert.alert('Sucesso!', 'Sua conta foi criada. Faça o login para continuar.', [
         { text: 'OK', onPress: () => navigation.navigate('Login') }
       ]);
       
-      // Limpa os campos
       setNome('');
       setEmail('');
       setSenha('');
-
     } catch (error) {
       console.log('Erro no cadastro:', error);
 
       if (error.response) {
-        // Tratamento de erros detalhado com base no Swagger
         switch (error.response.status) {
           case 409:
             Alert.alert('Conflito', 'Já existe uma conta cadastrada com este e-mail.');
@@ -94,37 +61,21 @@ export default function Cadastro({ navigation }) {
             Alert.alert('Erro', 'Não foi possível realizar o cadastro.');
         }
       } else {
-        Alert.alert('Erro de Conexão', 'Verifique sua conexão com a internet e tente novamente.');
+        Alert.alert('Erro de Conexão', 'Verifique sua conexão com a internet.');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fazerLoginGoogle = async () => {
-    if (MODO_EXPO_GO) {
-      navigation.navigate('Detalhes'); 
-      return;
-    }
-
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      const usuarioLogado = await auth().signInWithCredential(googleCredential);
-      
-      console.log("Login Real Sucesso!", usuarioLogado.user);
-      navigation.navigate('Teste');
-    } catch (error) {
-      console.log("Erro Real:", error);
-      Alert.alert("Erro", "Falha no login real. Verifique se está usando build nativa.");
-    }
-  }
-
   return (
     <LinearGradient colors={['#1A2980', '#26D0CE']} style={styles.fundo}>
       <BlurView intensity={30} tint="light" style={styles.caixa}>
         
+        <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
+          <AntDesign name="arrowleft" size={24} color="#fff" />
+        </TouchableOpacity>
+
         <View style={styles.cabecalho}>
           <Text style={styles.titulo}>Criar Conta</Text>
           <Text style={styles.sub_titulo}>Ecode Project</Text>
@@ -173,21 +124,10 @@ export default function Cadastro({ navigation }) {
           )}
         </TouchableOpacity>
 
-        <View style={styles.divisorContainer}>
-          <View style={styles.linha} />
-          <Text style={styles.textoDivisor}>ou</Text>
-          <View style={styles.linha} />
-        </View>
-
-        <TouchableOpacity style={styles.botaoGoogle} onPress={fazerLoginGoogle}>
-          <AntDesign name="google" size={24} color="#DB4437" />
-          <Text style={styles.textoBotaoGoogle}>Continuar com o Google</Text>
-        </TouchableOpacity>
-
         <View style={styles.containerCadastro}>
             <Text style={styles.texto_cadastro}>Já tem conta? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.texto_cadastro_link}>Login</Text>
+              <Text style={styles.texto_cadastro_link}>Login</Text>
             </TouchableOpacity>
         </View>
 
@@ -205,15 +145,20 @@ const styles = StyleSheet.create({
   caixa: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)', 
     width: 350,
-    paddingVertical: 40, 
+    paddingTop: 20,
+    paddingBottom: 40, 
     paddingHorizontal: 20, 
     borderRadius: 15,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     overflow: 'hidden', 
   },
+  botaoVoltar: {
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
   cabecalho: {
-    marginBottom: 40, 
+    marginBottom: 30, 
     alignItems: 'center',
   },
   titulo: {
@@ -255,43 +200,13 @@ const styles = StyleSheet.create({
     marginVertical:10, 
     alignSelf:'center',
     justifyContent: 'center', 
-    height: 55, // Previne pulos de UI quando o loading é ativado
+    height: 55, 
   },
   texto_botao:{
     color:'#1A2980', 
     fontSize: 18,
     fontFamily: 'Ubuntu_400Regular',
     textAlign:'center',
-  },
-  divisorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 15, 
-  },
-  linha: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', 
-  },
-  textoDivisor: {
-    color: '#fff',
-    marginHorizontal: 10,
-    fontFamily: 'Ubuntu_300Light',
-  },
-  botaoGoogle: {
-    backgroundColor: '#fff',
-    borderRadius: 50, 
-    padding: 15,
-    flexDirection: 'row', 
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20, 
-  },
-  textoBotaoGoogle: {
-    color: '#000000',
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 16,
-    marginLeft: 10, 
   },
   containerCadastro: {
     flexDirection: 'row', 

@@ -1,43 +1,28 @@
 import React, { useState, useEffect } from 'react'; 
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'; 
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
-import { AntDesign } from '@expo/vector-icons'; 
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur'; 
 
-// Importações adicionadas para a integração
-import axios from 'axios';
+// Importações do projeto reestruturado
+import { authService } from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const GoogleSignin = {}; 
-const auth = () => ({});
-
-const MODO_EXPO_GO = true; 
-const API_URL = 'https://api.2dsmoca.tech'; // Removida a barra final para evitar duplicidade de barras na URL
-
-export default function Login({ navigation }) {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Novo estado de carregamento
+  const [isLoading, setIsLoading] = useState(false); 
 
-  useEffect(() => {
-    if (!MODO_EXPO_GO) {
-      GoogleSignin.configure({
-        webClientId: '331879954859-8njdnh9tuuraooo0cit8l9dovrg2ar5e.apps.googleusercontent.com', 
-      });
-    }
-  }, []);
+  const MODO_EXPO_GO = true; 
 
-  let [fontsLoaded] = useFonts({
+  const [fontsLoaded] = useFonts({
     Ubuntu_300Light,
     Ubuntu_400Regular,
   });
 
   if (!fontsLoaded) return null;
 
-  // Função de Login Integrada com o Backend
   const fazerLogin = async () => {
-    // Validação básica de campos vazios
     if (!email || !senha) {
       Alert.alert('Atenção', 'Por favor, preencha seu e-mail e senha.');
       return;
@@ -46,33 +31,17 @@ export default function Login({ navigation }) {
     setIsLoading(true);
 
     try {
-      // Formatando os dados para application/x-www-form-urlencoded
-      const formBody = `username=${encodeURIComponent(email)}&password=${encodeURIComponent(senha)}`;
-
-      const response = await axios.post(`${API_URL}/public/Logar_Conta`, formBody, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
-      // Extraindo o token e salvando no dispositivo
-      const token = response.data.access_token;
-      await AsyncStorage.setItem('@jwt_token', token);
+      await authService.login(email, senha);
 
       console.log('Login efetuado com sucesso!');
-      
-      // Limpa os campos após o login (opcional)
       setEmail('');
       setSenha('');
 
-      // Redireciona para a próxima tela autenticada
-      navigation.navigate('Teste'); 
-
+      navigation.navigate('Detalhes'); 
     } catch (error) {
       console.log('Erro no login:', error);
 
       if (error.response) {
-        // Tratamento de erros previstos no Swagger
         if (error.response.status === 404) {
           Alert.alert('Falha no Login', 'Usuário não verificado, email ou senha inválidos.');
         } else if (error.response.status === 422) {
@@ -81,32 +50,12 @@ export default function Login({ navigation }) {
           Alert.alert('Erro no Servidor', 'Ocorreu um erro interno (500). Tente novamente mais tarde.');
         }
       } else {
-        Alert.alert('Erro de Conexão', 'Não foi possível se conectar ao servidor. Verifique sua internet.');
+        Alert.alert('Erro de Conexão', 'Não foi possível se conectar ao servidor.');
       }
     } finally {
       setIsLoading(false);
     }
   };
-
-  const fazerLoginGoogle = async () => {
-    if (MODO_EXPO_GO) {
-      navigation.navigate('Detalhes'); 
-      return;
-    }
-
-    try {
-      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const { idToken } = await GoogleSignin.signIn();
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      const usuarioLogado = await auth().signInWithCredential(googleCredential);
-      
-      console.log("Login Real Sucesso!", usuarioLogado.user);
-      navigation.navigate('Teste');
-    } catch (error) {
-      console.log("Erro Real:", error);
-      Alert.alert("Erro", "Falha no login real. Verifique se está usando build nativa.");
-    }
-  }
 
   return (
     <LinearGradient colors={['#1A2980', '#26D0CE']} style={styles.fundo}>
@@ -125,7 +74,7 @@ export default function Login({ navigation }) {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none" 
-          keyboardType="email-address" // Facilita o preenchimento no teclado móvel
+          keyboardType="email-address" 
         />
         
         <Text style={styles.label}>Senha</Text>
@@ -141,7 +90,7 @@ export default function Login({ navigation }) {
         <TouchableOpacity 
           style={styles.botao_redondo} 
           onPress={fazerLogin}
-          disabled={isLoading} // Impede múltiplos cliques acidentais
+          disabled={isLoading} 
         >
           {isLoading ? (
             <ActivityIndicator size="small" color="#1A2980" />
@@ -156,17 +105,42 @@ export default function Login({ navigation }) {
           <View style={styles.linha} />
         </View>
 
-        <TouchableOpacity style={styles.botaoGoogle} onPress={navigation.navigate('VerificarEmail')}>
-          <AntDesign name="verificar" size={24} color="#DB4437" />
-          <Text style={styles.textoBotaoGoogle}>Verificar Email</Text>
+        <View style={styles.containerCadastro}>
+          <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
+            <Text style={styles.texto_cadastro_link}>Criar conta</Text>
+          </TouchableOpacity>
+          <Text style={styles.texto_divisor_footer}> | </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+            <Text style={styles.texto_cadastro_link}>Esqueci Senha</Text>
+          </TouchableOpacity>
+          <Text style={styles.texto_divisor_footer}> | </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('VerificarEmail')}>
+            <Text style={styles.texto_cadastro_link}>Verificar Email</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={{ marginTop: 20, alignItems: 'center' }} 
+          onPress={() => navigation.navigate('Home')}
+        >
+          <Text style={[styles.texto_cadastro_link, { fontSize: 14, opacity: 0.8 }]}>Sobre o aplicativo</Text>
         </TouchableOpacity>
 
-        <View style={styles.containerCadastro}>
-            <Text style={styles.texto_cadastro}>Novo por aqui? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Cadastro')}>
-                <Text style={styles.texto_cadastro_link}>Criar conta</Text>
-            </TouchableOpacity>
-        </View>
+        {/* BOTÃO DE DEBUG - REMOVER EM PRODUÇÃO */}
+        <TouchableOpacity 
+          style={{ marginTop: 30, padding: 10, backgroundColor: 'rgba(255, 0, 0, 0.2)', borderRadius: 10 }} 
+          onPress={async () => {
+             try {
+                // Usando AsyncStorage diretamente para evitar erro de referência se o hotswap falhar
+                await AsyncStorage.setItem('@jwt_token', 'DEBUG_TOKEN');
+                navigation.navigate('Detalhes');
+             } catch (e) {
+                console.log('Erro ao salvar token de debug:', e);
+             }
+          }}
+        >
+          <Text style={{ color: '#ffaaaa', fontSize: 12, fontWeight: 'bold' }}>DEBUG: Ignorar Login</Text>
+        </TouchableOpacity>
 
       </BlurView>
     </LinearGradient>
@@ -232,7 +206,7 @@ const styles = StyleSheet.create({
     marginVertical:10, 
     alignSelf:'center',
     justifyContent: 'center', 
-    height: 55, // Fixado para evitar "pulos" de layout quando vira ActivityIndicator
+    height: 55, 
   },
   texto_botao:{
     color:'#1A2980', 
@@ -255,36 +229,20 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     fontFamily: 'Ubuntu_300Light',
   },
-  botaoGoogle: {
-    backgroundColor: '#fff',
-    borderRadius: 50, 
-    padding: 15,
-    flexDirection: 'row', 
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20, 
-  },
-  textoBotaoGoogle: {
-    color: '#000000',
-    fontFamily: 'Ubuntu_400Regular',
-    fontSize: 16,
-    marginLeft: 10, 
-  },
   containerCadastro: {
     flexDirection: 'row', 
     justifyContent: 'center', 
     alignItems: 'center',
     marginTop: 10,
   },
-  texto_cadastro:{
-    color:'#ececec',
-    fontSize:15,
-    fontFamily: 'Ubuntu_300Light',
-    textAlign:'center',
-  },
   texto_cadastro_link:{
     color:'#fff',
     fontSize:15,
     fontFamily: 'Ubuntu_400Regular', 
+  },
+  texto_divisor_footer: {
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginHorizontal: 5,
+    fontSize: 15,
   },
 });

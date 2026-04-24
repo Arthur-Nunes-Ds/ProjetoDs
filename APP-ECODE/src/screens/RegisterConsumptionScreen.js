@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -14,41 +14,59 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, DollarSign, ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native'; 
 
-// Importações para a integração com a API
-import axios from 'axios';
+// Importações do projeto reestruturado
+import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'https://api.2dsmoca.tech';
-
-export default function CadastrarConsumo() {
+export default function RegisterConsumptionScreen() {
   const navigation = useNavigation();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [tiposDisponiveis, setTiposDisponiveis] = useState([]);
+  const [loadingTipos, setLoadingTipos] = useState(true);
   
   const [formData, setFormData] = useState({
-    tipo: '',               
-    nome_personalizado: '', 
+    tipo_id: null,               
     valor: '',              
-    data: new Date().toISOString().split('T')[0]
+    dt_perioto: new Date().toISOString()
   });
 
-  const selecionarTipo = (tipo) => {
-    setFormData(prev => ({ ...prev, tipo: tipo, nome_personalizado: '' }));
+  useEffect(() => {
+    carregarTipos();
+  }, []);
+
+  const carregarTipos = async () => {
+    try {
+      const token = await AsyncStorage.getItem('@jwt_token');
+      const response = await api.get('/tipo_consumo/Mostrar_Tipos', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTiposDisponiveis(response.data.mensagem || []);
+    } catch (error) {      // Fallback para teste/debug se a API falhar ou retornar vazia
+      setTiposDisponiveis([
+        { id: 1, nome: 'Água', unidade_medida: 'm³' },
+        { id: 2, nome: 'Energia', unidade_medida: 'kWh' },
+        { id: 3, nome: 'Gás', unidade_medida: 'kg' }
+      ]);
+    } finally {
+      setLoadingTipos(false);
+    }
+  };
+
+  const selecionarTipo = (id) => {
+    setFormData(prev => ({ ...prev, tipo_id: id }));
   };
 
   const handleNext = () => {
+    if (step === 1 && !formData.tipo_id) {
+      Alert.alert('Atenção', 'Selecione uma categoria antes de prosseguir.');
+      return;
+    }
     // Validação extra para o Passo 2
     if (step === 2) {
-      if (formData.tipo === 'personalizado' && !formData.nome_personalizado.trim()) {
-        Alert.alert('Atenção', 'Informe o nome do recurso personalizado.');
-        return;
-      }
-      if (!formData.valor.trim() || isNaN(formData.valor)) {
+      if (!formData.valor.trim() || isNaN(formData.valor.replace(',', '.'))) {
         Alert.alert('Atenção', 'Informe um valor numérico válido.');
-        return;
-      }
-      if (!formData.data.trim()) {
-        Alert.alert('Atenção', 'A data do registro é obrigatória.');
         return;
       }
     }
@@ -75,32 +93,41 @@ export default function CadastrarConsumo() {
 
       // 2. Montar o payload
       const payload = {
-        categoria: formData.tipo === 'personalizado' ? formData.nome_personalizado.trim() : formData.tipo,
-        valor: parseFloat(formData.valor.replace(',', '.')), // Garante formato numérico válido
-        data: formData.data
+        valor: parseFloat(formData.valor.replace(',', '.')), 
+        dt_perioto: formData.dt_perioto.includes('T') ? formData.dt_perioto : `${formData.dt_perioto}T12:00:00Z`,
+        TIPO_CONSUMO_id: parseInt(formData.tipo_id)
       };
 
+      console.log('Enviando payload:', JSON.stringify(payload));
+
       // 3. Fazer a requisição POST
-      // ATENÇÃO: Substitua '/privado/Criar_Consumo' pela rota exata do seu Swagger
-      await axios.post(`${API_URL}/privado/Criar_Consumo`, payload, {
+      await api.post('/consumo/Criar_Consumo', payload, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Envia o token JWT
+          'Authorization': `Bearer ${token}` 
         }
       });
 
-      // 4. Sucesso! Vai para a tela final.
+      // 4. Sucesso!
       setStep(4); 
 
     } catch (error) {
       console.log('Erro ao registrar consumo:', error);
       
       if (error.response) {
+        console.log('DETALHES DO ERRO 422:', JSON.stringify(error.response.data, null, 2));
         if (error.response.status === 401) {
           Alert.alert('Sessão Expirada', 'Seu token venceu. Faça login novamente.');
           navigation.navigate('Login');
         } else if (error.response.status === 422) {
-          Alert.alert('Erro de Validação', 'Verifique os dados informados.');
+          // Extrai detalhes do erro do FastAPI
+          const detalhes = error.response.data.detail;
+          let msg = 'Dados inválidos.';
+          if (Array.isArray(detalhes)) {
+            msg = detalhes.map(d => `${d.loc[d.loc.length - 1]}: ${d.msg}`).join('\n');
+          } else if (typeof detalhes === 'string') {
+            msg = detalhes;
+          }
+          Alert.alert('Erro de Validação', msg);
         } else {
           Alert.alert('Erro', 'Ocorreu um problema no servidor. Tente novamente.');
         }
@@ -124,31 +151,41 @@ export default function CadastrarConsumo() {
       <Text style={styles.stepSubtitle}>Selecione uma categoria abaixo</Text>
       
       <View style={styles.cardsContainer}>
-        {[
-          { id: 'energia', label: 'Energia', icon: Zap, activeColor: '#26D0CE' },
-          { id: 'agua', label: 'Água', icon: Droplet, activeColor: '#26D0CE' },
-          { id: 'personalizado', label: 'Outro', icon: Box, activeColor: '#26D0CE' }
-        ].map((item) => {
-          const isActive = formData.tipo === item.id;
-          return (
-            <TouchableOpacity 
-              key={item.id} 
-              style={[styles.typeCard, isActive && styles.typeCardActive]}
-              onPress={() => selecionarTipo(item.id)}
-              activeOpacity={0.7}
-            >
-              <item.icon size={32} color={isActive ? item.activeColor : '#A0AEC0'} />
-              <Text style={[styles.typeLabel, isActive && styles.typeLabelActive]}>
-                {item.label}
-              </Text>
-              {isActive && (
-                <View style={styles.checkBadge}>
-                  <CheckCircle size={16} color="#1A2980" fill="#26D0CE" />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+        {loadingTipos ? (
+          <ActivityIndicator color="#26D0CE" />
+        ) : (
+          tiposDisponiveis.map((tipo) => {
+            const isActive = formData.tipo_id === tipo.id;
+            let Icone = Box;
+            if (tipo.nome.toLowerCase().includes('energia')) Icone = Zap;
+            else if (tipo.nome.toLowerCase().includes('agua') || tipo.nome.toLowerCase().includes('água')) Icone = Droplet;
+            else if (tipo.nome.toLowerCase().includes('gas') || tipo.nome.toLowerCase().includes('gás')) Icone = Box; // Lucide doesn't have a specific Gas icon easily, Flame?
+            
+            // Usando icones específicos
+            const isGas = tipo.nome.toLowerCase().includes('gas') || tipo.nome.toLowerCase().includes('gás');
+            const isAgua = tipo.nome.toLowerCase().includes('agua') || tipo.nome.toLowerCase().includes('água');
+            const isEnergia = tipo.nome.toLowerCase().includes('energia');
+         
+            return (
+              <TouchableOpacity 
+                key={tipo.id} 
+                style={[styles.typeCard, isActive && styles.typeCardActive]}
+                onPress={() => selecionarTipo(tipo.id)}
+                activeOpacity={0.7}
+              >
+                <Icone size={32} color={isActive ? '#26D0CE' : '#A0AEC0'} />
+                <Text style={[styles.typeLabel, isActive && styles.typeLabelActive]}>
+                  {tipo.nome}
+                </Text>
+                {isActive && (
+                  <View style={styles.checkBadge}>
+                    <CheckCircle size={16} color="#1A2980" fill="#26D0CE" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })
+        )}
       </View>
     </View>
   );
@@ -156,22 +193,6 @@ export default function CadastrarConsumo() {
   const renderStep2 = () => (
     <View style={styles.stepContainer}>
       <Text style={styles.stepTitle}>Detalhes do Consumo</Text>
-      
-      {formData.tipo === 'personalizado' && (
-        <View style={styles.inputGroup}>
-          <Text style={styles.inputLabel}>NOME DO RECURSO</Text>
-          <View style={styles.inputWrapper}>
-            <Edit3 size={20} color="#26D0CE" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholderTextColor="#A0AEC0"
-              placeholder="Ex: Internet..."
-              value={formData.nome_personalizado}
-              onChangeText={(text) => setFormData({...formData, nome_personalizado: text})}
-            />
-          </View>
-        </View>
-      )}
 
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>VALOR / LEITURA</Text>
@@ -188,47 +209,50 @@ export default function CadastrarConsumo() {
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>DATA DO REGISTRO</Text>
+    <View style={styles.inputGroup}>
+        <Text style={styles.inputLabel}>DATA DO REGISTRO (AAAA-MM-DD)</Text>
         <View style={styles.inputWrapper}>
           <Calendar size={20} color="#26D0CE" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholderTextColor="#A0AEC0"
-            value={formData.data}
-            onChangeText={(text) => setFormData({...formData, data: text})}
+            value={formData.dt_perioto.split('T')[0]}
+            onChangeText={(text) => setFormData({...formData, dt_perioto: text})}
           />
         </View>
       </View>
     </View>
   );
 
-  const renderStep3 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Revisão</Text>
-      
-      <View style={styles.reviewCard}>
-        <View style={styles.reviewRow}>
-          <Text style={styles.reviewLabel}>Categoria</Text>
-          <Text style={styles.reviewValueHighlight}>
-            {formData.tipo === 'personalizado' ? formData.nome_personalizado || 'Outro' : formData.tipo.toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.separator} />
+  const renderStep3 = () => {
+    const tipoRelativo = tiposDisponiveis.find(t => t.id === formData.tipo_id);
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Revisão</Text>
         
-        <View style={styles.reviewRow}>
-          <Text style={styles.reviewLabel}>Valor Registrado</Text>
-          <Text style={styles.reviewValueNumber}>{formData.valor || '0'}</Text>
-        </View>
-        <View style={styles.separator} />
-        
-        <View style={styles.reviewRow}>
-          <Text style={styles.reviewLabel}>Data</Text>
-          <Text style={styles.reviewValue}>{formData.data}</Text>
+        <View style={styles.reviewCard}>
+          <View style={styles.reviewRow}>
+            <Text style={styles.reviewLabel}>Categoria</Text>
+            <Text style={styles.reviewValueHighlight}>
+              {tipoRelativo ? tipoRelativo.nome : 'Não selecionado'}
+            </Text>
+          </View>
+          <View style={styles.separator} />
+          
+          <View style={styles.reviewRow}>
+            <Text style={styles.reviewLabel}>Valor Registrado</Text>
+            <Text style={styles.reviewValueNumber}>{formData.valor || '0'} {tipoRelativo?.unidade_medida}</Text>
+          </View>
+          <View style={styles.separator} />
+          
+          <View style={styles.reviewRow}>
+            <Text style={styles.reviewLabel}>Data</Text>
+            <Text style={styles.reviewValue}>{formData.dt_perioto.split('T')[0]}</Text>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const renderStep4 = () => (
     <View style={[styles.stepContainer, { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }]}>
@@ -267,9 +291,9 @@ export default function CadastrarConsumo() {
 
                 {step < 3 ? (
                   <TouchableOpacity 
-                    style={[styles.btnNext, !formData.tipo && { opacity: 0.5 }]} 
+                    style={[styles.btnNext, !formData.tipo_id && { opacity: 0.5 }]} 
                     onPress={handleNext}
-                    disabled={!formData.tipo}
+                    disabled={!formData.tipo_id}
                   >
                     <Text style={styles.btnTextNext}>Continuar</Text>
                     <ArrowRight size={20} color="#1A2980" />

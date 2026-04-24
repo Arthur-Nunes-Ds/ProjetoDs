@@ -13,17 +13,16 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BarChart, LineChart } from 'react-native-chart-kit';
-import { Menu, X, Plus, Settings, HelpCircle, Activity, User } from 'lucide-react-native';
+import { Menu, X, Plus, Settings, HelpCircle, Activity, User, ArrowLeft } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-// Importações para a integração com a API
-import axios from 'axios';
+// Importações do projeto reestruturado
+import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get("window").width;
-const API_URL = 'https://api.2dsmoca.tech';
 
-export default function Dashboard({ navigation }) {
+export default function DetailsScreen({ navigation }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,6 +36,8 @@ export default function Dashboard({ navigation }) {
     historicoSemestral: [0, 0, 0, 0, 0, 0] // Dados para o gráfico de linha
   });
 
+  const [usuario, setUsuario] = useState({ nome: 'Usuário', email: '' });
+
   // Função para buscar os dados do Dashboard na API
   const buscarDadosDashboard = async () => {
     setIsLoading(true);
@@ -49,22 +50,69 @@ export default function Dashboard({ navigation }) {
         return;
       }
 
-      // ATENÇÃO: Substitua '/privado/Dashboard' pela rota GET correta do seu Swagger
-      const response = await axios.get(`${API_URL}/privado/Dashboard`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      // --- MODO DEBUG ---
+      if (token === 'DEBUG_TOKEN') {
+        setUsuario({ nome: 'Dev Teste', email: 'debug@echo.de' });
+        setDados({
+          energia: 120.5,
+          agua: 15.2,
+          residuos: 8.4,
+          metaEnergia: 75,
+          dica: "MODO DEBUG ATIVO: Você está vendo dados simulados para teste de interface.",
+          historicoSemestral: [100, 150, 130, 170, 110, 120] 
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // 1. Buscar dados de forma resiliente
+      let consumos = [];
+      let metas = [];
+      let user = {};
+
+      try {
+        const res = await api.get('/consumo/Listar_Consumos', { headers: { Authorization: `Bearer ${token}` } });
+        consumos = res.data.mensagem || [];
+      } catch (e) { console.log('Erro ao buscar consumos:', e.message); }
+
+      try {
+        const res = await api.get('/meta/Listar_Metas', { headers: { Authorization: `Bearer ${token}` } });
+        metas = res.data.mensagem || [];
+      } catch (e) { console.log('Erro ao buscar metas:', e.message); }
+
+      try {
+        const res = await api.get('/user/Dados_User', { headers: { Authorization: `Bearer ${token}` } });
+        user = res.data.mensagem || {};
+      } catch (e) { console.log('Erro ao buscar dados do usuário:', e.message); }
+
+      setUsuario({ nome: user.nome || 'Usuário', email: user.email || '' });
+
+      // 2. Processar consumos (agrupar por tipo)
+      let energiaSum = 0;
+      let aguaSum = 0;
+      let gasSum = 0;
+      
+      const historico = consumos.length > 0 ? consumos.slice(0, 6).map(c => c.valor).reverse() : [0,0,0,0,0,0];
+      while(historico.length < 6) historico.unshift(0);
+
+      consumos.forEach(item => {
+        if (!item.tipoConsumo) return;
+        const nome = item.tipoConsumo.toLowerCase();
+        if (nome.includes('energia')) energiaSum += item.valor;
+        else if (nome.includes('agua') || nome.includes('água')) aguaSum += item.valor;
+        else if (nome.includes('gas') || nome.includes('gás')) gasSum += item.valor;
       });
 
-      // Mapeando a resposta da API para o estado (ajuste as chaves conforme o JSON que a API retorna)
-      const data = response.data;
+      // 3. Processar metas
+      const metaEnergia = metas.find(m => m.tipoConsumo && m.tipoConsumo.toLowerCase().includes('energia'))?.valorMeta || 80;
+
       setDados({
-        energia: data.energia || 0,
-        agua: data.agua || 0,
-        residuos: data.residuos || 0,
-        metaEnergia: data.metaEnergia || 0,
-        dica: data.dica || "Desligue o monitor quando não estiver usando. Isso economiza até 20% de energia.",
-        historicoSemestral: data.historico || [0, 0, 0, 0, 0, 0] 
+        energia: energiaSum,
+        agua: aguaSum,
+        residuos: gasSum,
+        metaEnergia: metaEnergia,
+        dica: "Use lâmpadas LED para economizar até 80% de energia em comparação com as incandescentes.",
+        historicoSemestral: historico
       });
 
     } catch (error) {
@@ -73,7 +121,7 @@ export default function Dashboard({ navigation }) {
         Alert.alert('Sessão Expirada', 'Faça login novamente.');
         navigation.replace('Login');
       } else {
-        Alert.alert('Erro', 'Não foi possível carregar os dados do dashboard.');
+        Alert.alert('Erro', 'Não foi possível carregar os dados. Verifique sua conexão.');
       }
     } finally {
       setIsLoading(false);
@@ -118,7 +166,10 @@ export default function Dashboard({ navigation }) {
             
             <View style={styles.sideMenu}>
               <View style={styles.sideMenuHeader}>
-                <Text style={styles.sideMenuTitle}>Menu</Text>
+                <View>
+                  <Text style={styles.sideMenuTitle}>{usuario.nome}</Text>
+                  <Text style={{ color: '#a1a1aa', fontSize: 12 }}>{usuario.email}</Text>
+                </View>
                 <TouchableOpacity onPress={() => setIsMenuOpen(false)}>
                   <X color="#fff" size={28} />
                 </TouchableOpacity>
@@ -150,11 +201,13 @@ export default function Dashboard({ navigation }) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.hamburgerBtn}>
+              <ArrowLeft color="#fff" size={28} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>EcoMonitor</Text>
             <TouchableOpacity onPress={() => setIsMenuOpen(true)} style={styles.hamburgerBtn}>
               <Menu color="#fff" size={28} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>EcoMonitor</Text>
-            <View style={{ width: 28 }} />
           </View>
 
           <TouchableOpacity 
@@ -195,7 +248,7 @@ export default function Dashboard({ navigation }) {
                 </View>
 
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardLabel}>Resíduos</Text>
+                  <Text style={styles.cardLabel}>Gás (Mês)</Text>
                   <Text style={[styles.cardValue, { color: '#4ade80' }]}>{dados.residuos} kg</Text>
                   <Text style={[styles.cardSubText, { color: '#a1a1aa' }]}>Monitorado</Text>
                 </View>

@@ -11,12 +11,11 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MailCheck, XCircle, CheckCircle2, KeyRound } from 'lucide-react-native';
-import axios from 'axios';
+import { MailCheck, XCircle, CheckCircle2, KeyRound, ArrowLeft } from 'lucide-react-native';
+import api from '../services/api';
 
-const API_URL = 'https://api.2dsmoca.tech';
 
-export default function VerificarEmail({ route, navigation }) {
+export default function VerifyEmailScreen({ route, navigation }) {
   // Pega o token se ele vier da navegação (ex: Deep Link do email)
   const tokenParam = route?.params?.token || '';
 
@@ -38,10 +37,7 @@ export default function VerificarEmail({ route, navigation }) {
     setErrorMessage('');
 
     try {
-      // ATENÇÃO: Substitua '/publico/Verificar_Email' pela rota exata do seu Swagger
-      await axios.post(`${API_URL}/publico/Verificar_Email`, {
-        token: jwt
-      });
+      await api.get(`/public/Verificar_Email/${jwt}`);
 
       setStatus('success');
     } catch (error) {
@@ -147,6 +143,9 @@ export default function VerificarEmail({ route, navigation }) {
           style={styles.keyboardView}
         >
           <View style={styles.card}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <ArrowLeft size={24} color="#fff" />
+            </TouchableOpacity>
             {status === 'idle' && renderIdle()}
             {status === 'loading' && renderLoading()}
             {status === 'success' && renderSuccess()}
@@ -171,7 +170,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: 'rgba(25, 30, 50, 0.75)', // Glassmorphism escuro
+    backgroundColor: 'rgba(25, 30, 50, 0.75)', 
     borderRadius: 24,
     padding: 30,
     borderWidth: 1,
@@ -181,6 +180,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 10,
   },
   centerContent: {
     alignItems: 'center',

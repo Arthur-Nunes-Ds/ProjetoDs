@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
-import { BlurView } from 'expo-blur';
+import { AntDesign } from '@expo/vector-icons';
 
-export default function Inicio({ navigation }) {
+export default function HomeScreen({ navigation }) {
   let [fontsLoaded] = useFonts({
       Ubuntu_300Light,
       Ubuntu_400Regular,
@@ -14,15 +14,15 @@ export default function Inicio({ navigation }) {
   }
 
   return (
-    // 1. O ScrollView agora é o contêiner principal (fica por fora)
     <ScrollView style={styles.fundo}>
-      
-
       <ImageBackground 
         source={require('../../assets/Fundo.png')} 
         style={styles.containerFundo} 
         resizeMode="cover"
       >
+        <TouchableOpacity style={styles.botaoVoltar} onPress={() => navigation.goBack()}>
+          <AntDesign name="left" size={28} color="#fff" />
+        </TouchableOpacity>
         
         <View style={styles.texto_1}>
           <Text style={styles.titulo_1}>Consumo inteligente.{'\n'}
@@ -78,9 +78,6 @@ export default function Inicio({ navigation }) {
           Sustentabilidade começa com consciência.
         </Text>
 
-        
-        
-
       </ImageBackground>
     </ScrollView>
   );
@@ -89,26 +86,19 @@ export default function Inicio({ navigation }) {
 const styles = StyleSheet.create({
   fundo:{
     flex:1, 
-    backgroundColor: '#306BAC' // Cor sólida para preencher caso a imagem demore a carregar
+    backgroundColor: '#306BAC' 
   },
-  
   containerFundo: {
     flex: 1, 
     width: '100%',
-
   },
-  
-  // ---------------- Footer --------------
-  footer:{
-    width:'100%',
-    height:100,
-    backgroundColor:'#2b5aa0',
+  botaoVoltar: {
+    padding: 20,
+    marginTop: 40,
   },
-
   texto_1:{
-    position:'relative',
-    marginTop:100,
     padding:30,
+    marginTop: 20,
   },
   titulo_1:{
     fontFamily:'Ubuntu_400Regular',
@@ -120,9 +110,6 @@ const styles = StyleSheet.create({
     color:'#d5d5d5',
     fontSize:18,
   },
-
-// ------------------- Botões ------------------------
-
   botao_redondo:{
     borderRadius:50,
     backgroundColor:'#ffffff',
@@ -132,7 +119,6 @@ const styles = StyleSheet.create({
     width:200,
     height:60,
     margin:10,
-    position:'relative',
     left:10,
   },
   texto_botao:{
@@ -141,11 +127,9 @@ const styles = StyleSheet.create({
     textAlign:'center',
     paddingTop:3,
   },
-// ----------------------------------------------------------
   caixas_view:{
-    marginVertical:150,
+    marginVertical:100,
   },
-
   caixa:{
     width:350,
     height:150,
@@ -162,9 +146,6 @@ const styles = StyleSheet.create({
     paddingVertical:20,  
     fontFamily:'Ubuntu_400Regular'
   },
-
-  // ----------------------------------------------------------------
-
   frase:{
     textAlign:'center',
     fontSize:30,
