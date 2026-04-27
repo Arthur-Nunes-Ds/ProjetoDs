@@ -12,8 +12,8 @@ import {
   Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BarChart, LineChart } from 'react-native-chart-kit';
-import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut } from 'lucide-react-native';
+import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
+import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut, DollarSign, Zap, Droplet, Box, Flame, History, Cpu } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -39,8 +39,18 @@ export default function DetailsScreen({ navigation }) {
     metaAguaVal: 0,
     metaGasVal: 0,
     dica: "Carregando dica sustentável...",
-    historicoSemestral: [0, 0, 0, 0, 0, 0] // Dados para o gráfico de linha
+    historicoEnergia: [0, 0, 0, 0, 0, 0],
+    historicoAgua: [0, 0, 0, 0, 0, 0],
+    historicoGas: [0, 0, 0, 0, 0, 0]
   });
+
+  const [rates, setRates] = useState({
+    energy: 0.95,
+    water: 0.01,
+    gas: 7.50
+  });
+
+  const [viewMode, setViewMode] = useState('units'); // 'units' ou 'cost'
 
   const [usuario, setUsuario] = useState({ nome: 'Usuário', email: '' });
 
@@ -48,6 +58,19 @@ export default function DetailsScreen({ navigation }) {
   const buscarDadosDashboard = async () => {
     setIsLoading(true);
     try {
+      // 0. Carregar Tarifas
+      const savedRates = await AsyncStorage.getItem('@consumption_rates');
+      let currentRates = { energy: 0.95, water: 0.01, gas: 7.50 };
+      if (savedRates) {
+        const parsed = JSON.parse(savedRates);
+        currentRates = {
+          energy: parseFloat(parsed.energy),
+          water: parseFloat(parsed.water),
+          gas: parseFloat(parsed.gas)
+        };
+        setRates(currentRates);
+      }
+
       const token = await AsyncStorage.getItem('@jwt_token');
       
       if (!token) {
@@ -64,8 +87,15 @@ export default function DetailsScreen({ navigation }) {
           agua: 15.2,
           residuos: 8.4,
           metaEnergia: 75,
+          metaAgua: 60,
+          metaGas: 45,
+          metaEnergiaVal: 200,
+          metaAguaVal: 25,
+          metaGasVal: 20,
           dica: "MODO DEBUG ATIVO: Você está vendo dados simulados para teste de interface.",
-          historicoSemestral: [100, 150, 130, 170, 110, 120] 
+          historicoEnergia: [100, 120, 115, 130, 110, 120],
+          historicoAgua: [12, 15, 14, 18, 15, 16],
+          historicoGas: [7, 9, 8, 10, 8, 9]
         });
         setIsLoading(false);
         return;
@@ -98,8 +128,23 @@ export default function DetailsScreen({ navigation }) {
       let aguaSum = 0;
       let gasSum = 0;
       
-      const historico = consumos.length > 0 ? consumos.slice(0, 6).map(c => c.valor).reverse() : [0,0,0,0,0,0];
-      while(historico.length < 6) historico.unshift(0);
+      const getHistoricoPorTipo = (termos) => {
+        const filtrado = consumos
+          .filter(c => {
+            if (!c.tipoConsumo) return false;
+            const nome = c.tipoConsumo.toLowerCase();
+            return termos.some(t => nome.includes(t));
+          })
+          .slice(0, 6)
+          .map(c => c.valor)
+          .reverse();
+        while(filtrado.length < 6) filtrado.unshift(0);
+        return filtrado;
+      };
+
+      const hEnergia = getHistoricoPorTipo(['energia']);
+      const hAgua = getHistoricoPorTipo(['agua', 'água']);
+      const hGas = getHistoricoPorTipo(['gas', 'gás']);
 
       consumos.forEach(item => {
         if (!item.tipoConsumo) return;
@@ -150,7 +195,9 @@ export default function DetailsScreen({ navigation }) {
         metaAguaVal,
         metaGasVal,
         dica: dicaSustentavel,
-        historicoSemestral: historico
+        historicoEnergia: hEnergia,
+        historicoAgua: hAgua,
+        historicoGas: hGas
       });
 
     } catch (error) {
@@ -218,6 +265,11 @@ export default function DetailsScreen({ navigation }) {
                 </TouchableOpacity>
               </View>
 
+              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('IoTControl'); }}>
+                <Cpu color="#a1a1aa" size={22} />
+                <Text style={styles.menuItemText}>Casa Inteligente (IoT)</Text>
+              </TouchableOpacity>
+
               <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('Account'); }}>
                 <User color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Minha Conta</Text>
@@ -281,24 +333,63 @@ export default function DetailsScreen({ navigation }) {
             </View>
           ) : (
             <>
+              {/* SELETOR DE MODO DE VISUALIZAÇÃO */}
+              <View style={styles.viewModeContainer}>
+                <TouchableOpacity 
+                  style={[styles.viewModeBtn, viewMode === 'units' && styles.viewModeBtnActive]} 
+                  onPress={() => setViewMode('units')}
+                >
+                  <Activity size={16} color={viewMode === 'units' ? '#fff' : '#a1a1aa'} />
+                  <Text style={[styles.viewModeBtnText, viewMode === 'units' && styles.viewModeBtnTextActive]}>Consumo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.viewModeBtn, viewMode === 'cost' && styles.viewModeBtnActive]} 
+                  onPress={() => setViewMode('cost')}
+                >
+                  <DollarSign size={16} color={viewMode === 'cost' ? '#fff' : '#a1a1aa'} />
+                  <Text style={[styles.viewModeBtnText, viewMode === 'cost' && styles.viewModeBtnTextActive]}>Financeiro</Text>
+                </TouchableOpacity>
+              </View>
+
               {/* AREA DE INFO RÁPIDA */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardsScroll}>
+                <TouchableOpacity 
+                  style={[styles.cardInfo, styles.iotShortcutCard]} 
+                  onPress={() => navigation.navigate('IoTControl')}
+                >
+                  <Cpu size={28} color="#4ade80" />
+                  <Text style={styles.iotShortcutLabel}>IoT Ativo</Text>
+                  <Text style={styles.iotShortcutStatus}>4 Dispositivos</Text>
+                </TouchableOpacity>
+
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardLabel}>Energia (Mês)</Text>
-                  <Text style={[styles.cardValue, { color: '#facc15' }]}>{dados.energia} kWh</Text>
-                  <Text style={[styles.cardSubText, { color: '#4ade80' }]}>Monitorado</Text>
+                  <Text style={[styles.cardValue, { color: '#facc15' }]}>
+                    {viewMode === 'units' ? `${dados.energia.toFixed(2)} kWh` : `R$ ${(dados.energia * rates.energy).toFixed(2)}`}
+                  </Text>
+                  <Text style={[styles.cardSubText, { color: '#4ade80' }]}>
+                    {viewMode === 'units' ? `R$ ${(dados.energia * rates.energy).toFixed(2)}` : `${dados.energia.toFixed(2)} kWh`}
+                  </Text>
                 </View>
                 
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardLabel}>Água (Mês)</Text>
-                  <Text style={[styles.cardValue, { color: '#60a5fa' }]}>{dados.agua} m³</Text>
-                  <Text style={[styles.cardSubText, { color: '#f87171' }]}>Monitorado</Text>
+                  <Text style={[styles.cardValue, { color: '#60a5fa' }]}>
+                    {viewMode === 'units' ? `${dados.agua.toFixed(0)} L` : `R$ ${(dados.agua * rates.water).toFixed(2)}`}
+                  </Text>
+                  <Text style={[styles.cardSubText, { color: '#f87171' }]}>
+                    {viewMode === 'units' ? `R$ ${(dados.agua * rates.water).toFixed(2)}` : `${dados.agua.toFixed(0)} L`}
+                  </Text>
                 </View>
 
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardLabel}>Gás (Mês)</Text>
-                  <Text style={[styles.cardValue, { color: '#4ade80' }]}>{dados.residuos} kg</Text>
-                  <Text style={[styles.cardSubText, { color: '#a1a1aa' }]}>Monitorado</Text>
+                  <Text style={[styles.cardValue, { color: '#4ade80' }]}>
+                    {viewMode === 'units' ? `${dados.residuos.toFixed(2)} kg` : `R$ ${(dados.residuos * rates.gas).toFixed(2)}`}
+                  </Text>
+                  <Text style={[styles.cardSubText, { color: '#a1a1aa' }]}>
+                    {viewMode === 'units' ? `R$ ${(dados.residuos * rates.gas).toFixed(2)}` : `${dados.residuos.toFixed(2)} kg`}
+                  </Text>
                 </View>
               </ScrollView>
 
@@ -314,30 +405,116 @@ export default function DetailsScreen({ navigation }) {
                   </View>
                 </View>
 
-                <Text style={styles.chartTitle}>Consumo por Categoria</Text>
+                <TouchableOpacity 
+                  style={styles.historyBtn}
+                  onPress={() => navigation.navigate('ConsumptionHistory')}
+                >
+                  <History size={18} color="#26D0CE" />
+                  <Text style={styles.historyBtnText}>Gerenciar Histórico Detalhado</Text>
+                  <AntDesign name="right" size={14} color="rgba(255,255,255,0.4)" />
+                </TouchableOpacity>
+
+                <Text style={styles.chartTitle}>{viewMode === 'units' ? 'Consumo por Categoria' : 'Custo por Categoria (R$)'}</Text>
                 <BarChart
                   data={{
-                    labels: ["Energia", "Água", "Mat."],
-                    datasets: [{ data: [dados.energia, dados.agua * 10, dados.residuos * 10] }] // Multiplicador visual apenas como exemplo
+                    labels: ["Energia", "Água", "Gás"],
+                    datasets: [{ 
+                      data: viewMode === 'units' 
+                        ? [
+                            Number(dados.energia.toFixed(2)), 
+                            Number(dados.agua.toFixed(0)), 
+                            Number(dados.residuos.toFixed(2))
+                          ] 
+                        : [
+                            Number((dados.energia * rates.energy).toFixed(2)), 
+                            Number((dados.agua * rates.water).toFixed(2)), 
+                            Number((dados.residuos * rates.gas).toFixed(2))
+                          ]
+                    }]
                   }}
                   width={screenWidth - 80}
                   height={220}
-                  yAxisLabel=""
+                  yAxisLabel={viewMode === 'cost' ? 'R$' : ''}
                   chartConfig={{...chartConfig, color: (opacity = 1) => `rgba(168, 85, 247, ${opacity})`}}
                   style={styles.chartStyle}
+                  fromZero
                   showValuesOnTopOfBars
                 />
 
-                <Text style={styles.chartTitle}>Histórico (Semestral)</Text>
-                <LineChart
-                  data={{
-                    labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
-                    datasets: [{ data: dados.historicoSemestral }]
-                  }}
+                <Text style={styles.chartTitle}>{viewMode === 'units' ? 'Distribuição do Consumo' : 'Distribuição dos Custos'}</Text>
+                <PieChart
+                  data={[
+                    {
+                      name: "Energia",
+                      population: Number((viewMode === 'units' ? dados.energia : dados.energia * rates.energy).toFixed(2)),
+                      color: "#facc15",
+                      legendFontColor: "#fff",
+                      legendFontSize: 12
+                    },
+                    {
+                      name: "Água",
+                      population: Number((viewMode === 'units' ? dados.agua : dados.agua * rates.water).toFixed(2)),
+                      color: "#60a5fa",
+                      legendFontColor: "#fff",
+                      legendFontSize: 12
+                    },
+                    {
+                      name: "Gás",
+                      population: Number((viewMode === 'units' ? dados.residuos : dados.residuos * rates.gas).toFixed(2)),
+                      color: "#4ade80",
+                      legendFontColor: "#fff",
+                      legendFontSize: 12
+                    }
+                  ]}
                   width={screenWidth - 80}
                   height={220}
-                  chartConfig={{...chartConfig, color: (opacity = 1) => `rgba(34, 211, 238, ${opacity})`}}
+                  chartConfig={chartConfig}
+                  accessor={"population"}
+                  backgroundColor={"transparent"}
+                  paddingLeft={"15"}
+                  center={[10, 0]}
+                  absolute
+                />
+
+                <Text style={styles.chartTitle}>Histórico de Energia (kWh)</Text>
+                <LineChart
+                  data={{
+                    labels: ["1", "2", "3", "4", "5", "6"],
+                    datasets: [{ data: dados.historicoEnergia }]
+                  }}
+                  width={screenWidth - 80}
+                  height={180}
+                  chartConfig={{...chartConfig, color: (opacity = 1) => `rgba(250, 204, 21, ${opacity})`}}
                   bezier
+                  fromZero
+                  style={styles.chartStyle}
+                />
+
+                <Text style={styles.chartTitle}>Histórico de Água (Litros)</Text>
+                <LineChart
+                  data={{
+                    labels: ["1", "2", "3", "4", "5", "6"],
+                    datasets: [{ data: dados.historicoAgua }]
+                  }}
+                  width={screenWidth - 80}
+                  height={180}
+                  chartConfig={{...chartConfig, color: (opacity = 1) => `rgba(96, 165, 250, ${opacity})`}}
+                  bezier
+                  fromZero
+                  style={styles.chartStyle}
+                />
+
+                <Text style={styles.chartTitle}>Histórico de Gás (kg)</Text>
+                <LineChart
+                  data={{
+                    labels: ["1", "2", "3", "4", "5", "6"],
+                    datasets: [{ data: dados.historicoGas }]
+                  }}
+                  width={screenWidth - 80}
+                  height={180}
+                  chartConfig={{...chartConfig, color: (opacity = 1) => `rgba(74, 222, 128, ${opacity})`}}
+                  bezier
+                  fromZero
                   style={styles.chartStyle}
                 />
               </View>
@@ -435,6 +612,48 @@ const styles = StyleSheet.create({
   btnCadastrarIcon: { marginRight: 10 },
   btnCadastrarText: { color: '#fff', fontSize: 16, fontWeight: 'bold', letterSpacing: 0.5, fontFamily: 'UBUNTU-400Regular' },
   
+  viewModeContainer: { flexDirection: 'row', backgroundColor: 'rgba(24, 24, 27, 0.4)', borderRadius: 12, padding: 4, marginBottom: 20, alignSelf: 'flex-start' },
+  viewModeBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
+  viewModeBtnActive: { backgroundColor: '#3b82f6' },
+  viewModeBtnText: { color: '#a1a1aa', fontSize: 13, marginLeft: 6, fontWeight: 'bold' },
+  viewModeBtnTextActive: { color: '#fff' },
+  historyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  historyBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+    marginLeft: 10,
+    fontFamily: 'UBUNTU-400Regular'
+  },
+  iotShortcutCard: {
+    backgroundColor: 'rgba(74, 222, 128, 0.1)',
+    borderColor: 'rgba(74, 222, 128, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 100
+  },
+  iotShortcutLabel: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 8
+  },
+  iotShortcutStatus: {
+    color: '#4ade80',
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginTop: 2
+  },
   // Adicionado estilo para o carregamento
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 },
   loadingText: { color: '#fff', marginTop: 10, fontFamily: 'UBUNTU-400Regular', fontSize: 16 },

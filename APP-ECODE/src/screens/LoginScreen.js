@@ -7,12 +7,13 @@ import { BlurView } from 'expo-blur';
 // Importações do projeto reestruturado
 import { authService } from '../services/authService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Eye, EyeOff } from 'lucide-react-native';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
-
+  const [showPassword, setShowPassword] = useState(false);
 
   const [fontsLoaded] = useFonts({
     Ubuntu_300Light,
@@ -77,14 +78,26 @@ export default function LoginScreen({ navigation }) {
         />
         
         <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#d7d7d7"
-          secureTextEntry
-          value={senha}
-          onChangeText={setSenha}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="••••••••"
+            placeholderTextColor="#d7d7d7"
+            secureTextEntry={!showPassword}
+            value={senha}
+            onChangeText={setSenha}
+          />
+          <TouchableOpacity 
+            style={styles.eyeIcon} 
+            onPress={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff color="#fff" size={20} />
+            ) : (
+              <Eye color="#fff" size={20} />
+            )}
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity 
           style={styles.botao_redondo} 
@@ -181,6 +194,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Ubuntu_400Regular',
     marginBottom: 15, 
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 15, 
+  },
+  inputPassword: {
+    flex: 1,
+    color: '#fff', 
+    padding: 15,
+    fontSize: 16,
+    fontFamily: 'Ubuntu_400Regular',
+  },
+  eyeIcon: {
+    padding: 10,
   },
   botao_redondo:{
     borderRadius:50,

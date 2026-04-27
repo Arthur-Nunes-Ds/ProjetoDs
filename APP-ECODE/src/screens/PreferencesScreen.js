@@ -11,15 +11,17 @@ import {
   ScrollView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, CheckCircle, ArrowLeft, Save } from 'lucide-react-native';
+import { User, CheckCircle, ArrowLeft, Save, Eye, EyeOff } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PreferencesScreen({ navigation }) {
   const [nome, setNome] = useState('');
+  const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -49,17 +51,31 @@ export default function PreferencesScreen({ navigation }) {
     try {
       const token = await AsyncStorage.getItem('@jwt_token');
       
-      // Atualizando o nome do usuário usando o endpoint correto
-      await api.put('/user/Editar_User', 
-        { nome: nome.trim() },
+      console.log('Tentando salvar nome:', nome.trim());
+
+      // Atualizando o nome do usuário usando o endpoint correto identificado no OpenAPI
+      const payload = { 
+        nome: nome.trim(),
+        senha: senha.trim() || null
+      };
+
+      const response = await api.put('/user/Editar_User', 
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+      console.log('Resposta da API:', JSON.stringify(response.data));
 
       Alert.alert('Sucesso', 'Suas alterações foram salvas!');
       navigation.goBack();
     } catch (error) {
-      console.log('Erro ao salvar alterações:', error);
-      Alert.alert('Erro', 'Não foi possível salvar as alterações. Tente novamente.');
+      console.log('Erro detalhado ao salvar alterações:', error);
+      if (error.response) {
+        console.log('Dados do erro:', JSON.stringify(error.response.data));
+        Alert.alert('Erro', `Servidor respondeu com erro: ${error.response.data.mensagem || 'Verifique os dados'}`);
+      } else {
+        Alert.alert('Erro', 'Não foi possível salvar as alterações. Verifique sua conexão.');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -103,6 +119,28 @@ export default function PreferencesScreen({ navigation }) {
                 value={nome}
                 onChangeText={setNome}
               />
+            </View>
+
+            <Text style={styles.label}>Alterar Senha (Opcional)</Text>
+            <View style={[styles.inputWrapper, styles.passwordWrapper]}>
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="Nova senha"
+                placeholderTextColor="rgba(255, 255, 255, 0.4)"
+                secureTextEntry={!showPassword}
+                value={senha}
+                onChangeText={setSenha}
+              />
+              <TouchableOpacity 
+                style={styles.eyeIcon} 
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff color="#fff" size={20} />
+                ) : (
+                  <Eye color="#fff" size={20} />
+                )}
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity 
@@ -165,6 +203,13 @@ const styles = StyleSheet.create({
     padding: 15, 
     color: '#fff', 
     fontSize: 18, 
+  },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eyeIcon: {
+    paddingHorizontal: 15,
   },
   submitBtn: { 
     backgroundColor: '#fff', 

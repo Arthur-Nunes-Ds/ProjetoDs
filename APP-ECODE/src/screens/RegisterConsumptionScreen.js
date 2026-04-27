@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native'; 
 
 // Importações do projeto reestruturado
@@ -28,6 +28,7 @@ export default function RegisterConsumptionScreen() {
 
   const [tiposDisponiveis, setTiposDisponiveis] = useState([]);
   const [loadingTipos, setLoadingTipos] = useState(true);
+  const [recentHistory, setRecentHistory] = useState([]);
   
   const [formData, setFormData] = useState({
     tipo_id: null,               
@@ -37,6 +38,7 @@ export default function RegisterConsumptionScreen() {
 
   useEffect(() => {
     carregarTipos();
+    carregarHistoricoRecente();
   }, []);
 
   const carregarTipos = async () => {
@@ -48,12 +50,26 @@ export default function RegisterConsumptionScreen() {
       setTiposDisponiveis(response.data.mensagem || []);
     } catch (error) {      // Fallback para teste/debug se a API falhar ou retornar vazia
       setTiposDisponiveis([
-        { id: 1, nome: 'Água', unidade_medida: 'm³' },
+        { id: 1, nome: 'Água', unidade_medida: 'L' },
         { id: 2, nome: 'Energia', unidade_medida: 'kWh' },
         { id: 3, nome: 'Gás', unidade_medida: 'kg' }
       ]);
     } finally {
       setLoadingTipos(false);
+    }
+  };
+
+  const carregarHistoricoRecente = async () => {
+    try {
+      const token = await AsyncStorage.getItem('@jwt_token');
+      const response = await api.get('/consumo/Listar_Consumos', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const lista = response.data.mensagem || [];
+      lista.sort((a, b) => new Date(b.dataRegistrada) - new Date(a.dataRegistrada));
+      setRecentHistory(lista.slice(0, 3)); // Pegar apenas os 3 últimos
+    } catch (error) {
+      console.log('Erro ao carregar histórico recente:', error);
     }
   };
 
@@ -112,7 +128,7 @@ export default function RegisterConsumptionScreen() {
 
       // 4. Sucesso!
       setStep(4); 
-
+      carregarHistoricoRecente(); // Atualizar histórico após novo registro
     } catch (error) {
       console.log('Erro ao registrar consumo:', error);
       
@@ -202,6 +218,37 @@ export default function RegisterConsumptionScreen() {
           })
         )}
       </View>
+
+      {recentHistory.length > 0 && (
+        <View style={styles.recentSection}>
+          <View style={styles.recentHeader}>
+            <History size={16} color="#26D0CE" />
+            <Text style={styles.recentTitle}>Últimos Registros</Text>
+          </View>
+          {recentHistory.map((item) => (
+            <View key={item.id} style={styles.recentItem}>
+              <View style={styles.recentInfo}>
+                <Text style={styles.recentCategory}>{item.tipoConsumo}</Text>
+                <Text style={styles.recentDate}>
+                  {new Date(item.dataRegistrada).toLocaleDateString('pt-BR')}
+                </Text>
+              </View>
+              <Text style={styles.recentValue}>
+                {item.tipoConsumo.toLowerCase().includes('agua') || item.tipoConsumo.toLowerCase().includes('água') 
+                  ? `${parseFloat(item.valor).toFixed(0)} L` 
+                  : `${parseFloat(item.valor).toFixed(2)} ${item.tipoConsumo.toLowerCase().includes('energia') ? 'kWh' : 'kg'}`}
+              </Text>
+            </View>
+          ))}
+          <TouchableOpacity 
+            style={styles.viewFullHistory} 
+            onPress={() => navigation.navigate('ConsumptionHistory')}
+          >
+            <Text style={styles.viewFullHistoryText}>Ver histórico completo</Text>
+            <ArrowRight size={14} color="#26D0CE" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -386,5 +433,16 @@ const styles = StyleSheet.create({
   btnBack: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   btnTextBack: { color: '#fff', marginLeft: 8, fontWeight: '600' },
   btnNext: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#26D0CE', paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30 },
-  btnTextNext: { color: '#1A2980', fontWeight: 'bold', marginRight: 8 }
+  btnTextNext: { color: '#1A2980', fontWeight: 'bold', marginRight: 8 },
+  
+  recentSection: { marginTop: 30, backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 16, padding: 15 },
+  recentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  recentTitle: { color: '#26D0CE', fontSize: 14, fontWeight: 'bold', marginLeft: 8, textTransform: 'uppercase' },
+  recentItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  recentInfo: { flex: 1 },
+  recentCategory: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  recentDate: { color: 'rgba(255,255,255,0.4)', fontSize: 12 },
+  recentValue: { color: '#26D0CE', fontSize: 14, fontWeight: 'bold' },
+  viewFullHistory: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingTop: 8 },
+  viewFullHistoryText: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginRight: 5 }
 });

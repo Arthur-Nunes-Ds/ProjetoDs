@@ -37,7 +37,7 @@ export default function CreateGoalScreen({ navigation }) {
       setTiposDisponiveis(response.data.mensagem || []);
     } catch (error) {
       setTiposDisponiveis([
-        { id: 1, nome: 'Água', unidade_medida: 'm³' },
+        { id: 1, nome: 'Água', unidade_medida: 'L' },
         { id: 2, nome: 'Energia', unidade_medida: 'kWh' },
         { id: 3, nome: 'Gás', unidade_medida: 'kg' }
       ]);

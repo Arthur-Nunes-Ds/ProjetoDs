@@ -10,19 +10,22 @@ import {
   ScrollView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Mail, Shield, Trash2, LogOut, Settings } from 'lucide-react-native';
+import { User, Mail, Shield, Trash2, LogOut, Settings, Zap } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function AccountScreen({ navigation }) {
   const [user, setUser] = useState({ nome: '', email: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    carregarDadosUsuario();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarDadosUsuario();
+    }, [])
+  );
 
   const carregarDadosUsuario = async () => {
     try {
@@ -71,7 +74,7 @@ export default function AccountScreen({ navigation }) {
     setIsDeleting(true);
     try {
       const token = await AsyncStorage.getItem('@jwt_token');
-      await api.delete('/user/Deletar_Conta', {
+      await api.delete('/user/Del_User', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -137,7 +140,17 @@ export default function AccountScreen({ navigation }) {
               <View style={[styles.iconContainer, { backgroundColor: '#10b981' }]}>
                 <Settings color="#fff" size={20} />
               </View>
-              <Text style={styles.menuItemText}>Preferências</Text>
+              <Text style={styles.menuItemText}>Preferências de Perfil</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => navigation.navigate('Rates')}
+            >
+              <View style={[styles.iconContainer, { backgroundColor: '#facc15' }]}>
+                <Zap color="#fff" size={20} />
+              </View>
+              <Text style={styles.menuItemText}>Configurações de Tarifas</Text>
             </TouchableOpacity>
           </View>
 

@@ -12,6 +12,9 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import AccountScreen from '../screens/AccountScreen';
 import CreateGoalScreen from '../screens/CreateGoalScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
+import RatesScreen from '../screens/RatesScreen';
+import ConsumptionHistoryScreen from '../screens/ConsumptionHistoryScreen';
+import IoTControlScreen from '../screens/IoTControlScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,6 +73,21 @@ export default function AppRoutes() {
         name="Preferences" 
         component={PreferencesScreen} 
         options={{ title: 'Preferências' }} 
+      />
+      <Stack.Screen 
+        name="Rates" 
+        component={RatesScreen} 
+        options={{ title: 'Tarifas' }} 
+      />
+      <Stack.Screen 
+        name="ConsumptionHistory" 
+        component={ConsumptionHistoryScreen} 
+        options={{ title: 'Histórico' }} 
+      />
+      <Stack.Screen 
+        name="IoTControl" 
+        component={IoTControlScreen} 
+        options={{ title: 'Casa Inteligente' }} 
       />
     </Stack.Navigator>
   );
