@@ -54,10 +54,11 @@ export default function PreferencesScreen({ navigation }) {
       console.log('Tentando salvar nome:', nome.trim());
 
       // Atualizando o nome do usuário usando o endpoint correto identificado no OpenAPI
-      const payload = { 
-        nome: nome.trim(),
-        senha: senha.trim() || null
-      };
+      const payload = {};
+      if (nome.trim()) payload.nome = nome.trim();
+      if (senha.trim()) payload.senha = senha.trim();
+
+      console.log('DEBUG PAYLOAD:', payload);
 
       const response = await api.put('/user/Editar_User', 
         payload,

@@ -13,17 +13,21 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History } from 'lucide-react-native';
+import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History, Scan } from 'lucide-react-native';
+import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'; 
 
 // Importações do projeto reestruturado
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function RegisterConsumptionScreen() {
+export default function RegisterConsumptionScreen({ route }) {
   const navigation = useNavigation();
+  const editItem = route?.params?.editItem;
+  
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditing, setIsEditing] = useState(!!editItem);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [tiposDisponiveis, setTiposDisponiveis] = useState([]);
@@ -31,15 +35,29 @@ export default function RegisterConsumptionScreen() {
   const [recentHistory, setRecentHistory] = useState([]);
   
   const [formData, setFormData] = useState({
-    tipo_id: null,               
-    valor: '',              
-    dt_perioto: new Date().toISOString()
+    tipo_id: editItem ? null : null, // Será definido no useEffect
+    valor: editItem ? editItem.valor.toString() : '',              
+    dt_perioto: editItem ? editItem.dataRegistrada : new Date().toISOString()
   });
 
   useEffect(() => {
     carregarTipos();
     carregarHistoricoRecente();
-  }, []);
+
+    if (editItem) {
+      setStep(2); // Vai direto para o valor/data
+    }
+  }, [editItem]);
+
+  useEffect(() => {
+    // Vincular o tipo_id se estiver editando assim que os tipos carregarem
+    if (editItem && tiposDisponiveis.length > 0) {
+      const tipo = tiposDisponiveis.find(t => t.nome === editItem.tipoConsumo);
+      if (tipo) {
+        setFormData(prev => ({ ...prev, tipo_id: tipo.id }));
+      }
+    }
+  }, [editItem, tiposDisponiveis]);
 
   const carregarTipos = async () => {
     try {
@@ -119,16 +137,20 @@ export default function RegisterConsumptionScreen() {
 
       console.log('Enviando payload:', JSON.stringify(payload));
 
-      // 3. Fazer a requisição POST
-      await api.post('/consumo/Criar_Consumo', payload, {
-        headers: {
-          'Authorization': `Bearer ${token}` 
-        }
-      });
+      // 3. Fazer a requisição POST ou PUT
+      if (isEditing) {
+        await api.put(`/consumo/Editar_Consumo/${editItem.id}`, payload, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      } else {
+        await api.post('/consumo/Criar_Consumo', payload, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+      }
 
       // 4. Sucesso!
       setStep(4); 
-      carregarHistoricoRecente(); // Atualizar histórico após novo registro
+      carregarHistoricoRecente();
     } catch (error) {
       console.log('Erro ao registrar consumo:', error);
       
@@ -332,8 +354,12 @@ export default function RegisterConsumptionScreen() {
   const renderStep4 = () => (
     <View style={[styles.stepContainer, { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 }]}>
       <CheckCircle size={80} color="#26D0CE" />
-      <Text style={[styles.stepTitle, { marginTop: 20 }]}>Registrado!</Text>
-      <Text style={styles.stepSubtitle}>Os dados foram salvos com sucesso.</Text>
+      <Text style={[styles.stepTitle, { marginTop: 20 }]}>
+        {isEditing ? 'Atualizado!' : 'Registrado!'}
+      </Text>
+      <Text style={styles.stepSubtitle}>
+        {isEditing ? 'As alterações foram salvas com sucesso.' : 'Os dados foram salvos com sucesso.'}
+      </Text>
     </View>
   );
 
@@ -342,10 +368,29 @@ export default function RegisterConsumptionScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           
-          <View style={styles.header}>
-            <Text style={styles.title}>Novo Registro</Text>
-            <Text style={styles.subtitle}>GERENCIAMENTO DE RECURSOS</Text>
-          </View>
+            <View style={styles.header}>
+              <Text style={styles.title}>{isEditing ? 'Editar Registro' : 'Novo Registro'}</Text>
+              <Text style={styles.subtitle}>{isEditing ? 'ATUALIZAR DADOS' : 'GERENCIAMENTO DE RECURSOS'}</Text>
+            </View>
+
+            {!isEditing && (
+              <TouchableOpacity 
+                style={styles.ocrShortcut} 
+                onPress={() => navigation.navigate('OCRScanner')}
+              >
+                <LinearGradient 
+                  colors={['rgba(38, 208, 206, 0.2)', 'rgba(26, 41, 128, 0.2)']} 
+                  style={styles.ocrShortcutGradient}
+                >
+                  <Scan size={24} color="#26D0CE" />
+                  <View style={styles.ocrShortcutTextWrapper}>
+                    <Text style={styles.ocrShortcutTitle}>Registrar por Foto (IA)</Text>
+                    <Text style={styles.ocrShortcutSub}>Economize tempo usando nosso scanner</Text>
+                  </View>
+                  <AntDesign name="right" size={16} color="#26D0CE" />
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
 
           <View style={styles.card}>
             {step === 1 && renderStep1()}
@@ -387,7 +432,9 @@ export default function RegisterConsumptionScreen() {
 
             {step === 4 && (
               <TouchableOpacity style={[styles.btnNext, { width: '100%', justifyContent: 'center' }]} onPress={concluir}>
-                <Text style={styles.btnTextNext}>Voltar ao Início</Text>
+                <Text style={styles.btnTextNext}>
+                  {isEditing ? 'Voltar ao Histórico' : 'Voltar ao Início'}
+                </Text>
               </TouchableOpacity>
             )}
           </View>
@@ -444,5 +491,11 @@ const styles = StyleSheet.create({
   recentDate: { color: 'rgba(255,255,255,0.4)', fontSize: 12 },
   recentValue: { color: '#26D0CE', fontSize: 14, fontWeight: 'bold' },
   viewFullHistory: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingTop: 8 },
-  viewFullHistoryText: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginRight: 5 }
+  viewFullHistoryText: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginRight: 5 },
+
+  ocrShortcut: { marginBottom: 20, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(38, 208, 206, 0.3)' },
+  ocrShortcutGradient: { flexDirection: 'row', alignItems: 'center', padding: 15 },
+  ocrShortcutTextWrapper: { flex: 1, marginLeft: 15 },
+  ocrShortcutTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  ocrShortcutSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11 }
 });

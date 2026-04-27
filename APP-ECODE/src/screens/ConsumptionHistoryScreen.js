@@ -11,7 +11,7 @@ import {
   RefreshControl
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Trash2, Calendar, Zap, Droplet, Flame, ArrowLeft, Filter } from 'lucide-react-native';
+import { Trash2, Calendar, Zap, Droplet, Flame, ArrowLeft, Filter, Edit3 } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -114,12 +114,20 @@ export default function ConsumptionHistoryScreen({ navigation }) {
           </Text>
         </View>
       </View>
-      <TouchableOpacity 
-        style={styles.deleteBtn} 
-        onPress={() => handleConfirmDelete(item.id)}
-      >
-        <Trash2 size={20} color="#ef4444" />
-      </TouchableOpacity>
+      <View style={styles.actionsWrapper}>
+        <TouchableOpacity 
+          style={styles.editBtn} 
+          onPress={() => navigation.navigate('RegisterConsumption', { editItem: item })}
+        >
+          <Edit3 size={20} color="#3b82f6" />
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.deleteBtn} 
+          onPress={() => handleConfirmDelete(item.id)}
+        >
+          <Trash2 size={20} color="#ef4444" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -226,6 +234,16 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 12
+  },
+  actionsWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  editBtn: {
+    padding: 10,
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 12,
+    marginRight: 8
   },
   centerContainer: {
     flex: 1,

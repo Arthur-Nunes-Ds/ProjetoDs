@@ -125,10 +125,6 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
             <Text style={styles.texto_cadastro_link}>Esqueci Senha</Text>
           </TouchableOpacity>
-          <Text style={styles.texto_divisor_footer}> | </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('VerificarEmail')}>
-            <Text style={styles.texto_cadastro_link}>Verificar Email</Text>
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity 
