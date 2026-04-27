@@ -8,10 +8,12 @@ import {
   ScrollView, 
   SafeAreaView,
   ActivityIndicator,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, DollarSign, ArrowLeft, ArrowRight } from 'lucide-react-native';
+import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native'; 
 
 // Importações do projeto reestruturado
@@ -22,6 +24,7 @@ export default function RegisterConsumptionScreen() {
   const navigation = useNavigation();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [tiposDisponiveis, setTiposDisponiveis] = useState([]);
   const [loadingTipos, setLoadingTipos] = useState(true);
@@ -143,6 +146,18 @@ export default function RegisterConsumptionScreen() {
     navigation.goBack(); // ou navigation.navigate('Dashboard')
   };
 
+  const onDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const today = new Date();
+      if (selectedDate > today) {
+        Alert.alert('Data Inválida', 'Você não pode registrar um consumo em uma data futura.');
+        return;
+      }
+      setFormData(prev => ({ ...prev, dt_perioto: selectedDate.toISOString() }));
+    }
+  };
+
   // --- RENDERIZAÇÃO DOS PASSOS ---
   
   const renderStep1 = () => (
@@ -190,39 +205,52 @@ export default function RegisterConsumptionScreen() {
     </View>
   );
 
-  const renderStep2 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Detalhes do Consumo</Text>
+  const renderStep2 = () => {
+    const tipoRelativo = tiposDisponiveis.find(t => t.id === formData.tipo_id);
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Detalhes do Consumo</Text>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>VALOR / LEITURA</Text>
-        <View style={styles.inputWrapper}>
-          <DollarSign size={20} color="#26D0CE" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholderTextColor="#A0AEC0"
-            placeholder="0.00"
-            keyboardType="numeric"
-            value={formData.valor}
-            onChangeText={(text) => setFormData({...formData, valor: text})}
-          />
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>VALOR / LEITURA ({tipoRelativo?.unidade_medida || 'UN'})</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.unitPrefix}>{tipoRelativo?.unidade_medida || '?'}</Text>
+            <TextInput
+              style={styles.input}
+              placeholderTextColor="#A0AEC0"
+              placeholder="0.00"
+              keyboardType="numeric"
+              value={formData.valor}
+              onChangeText={(text) => setFormData({...formData, valor: text})}
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>DATA DO REGISTRO</Text>
+          <TouchableOpacity 
+            style={styles.inputWrapper} 
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Calendar size={20} color="#26D0CE" style={styles.inputIcon} />
+            <Text style={styles.inputTextValue}>
+              {new Date(formData.dt_perioto).toLocaleDateString('pt-BR')}
+            </Text>
+          </TouchableOpacity>
+          
+          {showDatePicker && (
+            <DateTimePicker
+              value={new Date(formData.dt_perioto)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={onDateChange}
+              maximumDate={new Date()}
+            />
+          )}
         </View>
       </View>
-
-    <View style={styles.inputGroup}>
-        <Text style={styles.inputLabel}>DATA DO REGISTRO (AAAA-MM-DD)</Text>
-        <View style={styles.inputWrapper}>
-          <Calendar size={20} color="#26D0CE" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholderTextColor="#A0AEC0"
-            value={formData.dt_perioto.split('T')[0]}
-            onChangeText={(text) => setFormData({...formData, dt_perioto: text})}
-          />
-        </View>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderStep3 = () => {
     const tipoRelativo = tiposDisponiveis.find(t => t.id === formData.tipo_id);
@@ -247,7 +275,7 @@ export default function RegisterConsumptionScreen() {
           
           <View style={styles.reviewRow}>
             <Text style={styles.reviewLabel}>Data</Text>
-            <Text style={styles.reviewValue}>{formData.dt_perioto.split('T')[0]}</Text>
+            <Text style={styles.reviewValue}>{new Date(formData.dt_perioto).toLocaleDateString('pt-BR')}</Text>
           </View>
         </View>
       </View>
@@ -344,6 +372,8 @@ const styles = StyleSheet.create({
   inputLabel: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginBottom: 8, marginLeft: 4 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 15 },
   inputIcon: { marginRight: 10 },
+  unitPrefix: { color: '#26D0CE', fontWeight: 'bold', fontSize: 16, marginRight: 10 },
+  inputTextValue: { flex: 1, color: '#fff', fontSize: 16, paddingVertical: 15 },
   input: { flex: 1, color: '#fff', fontSize: 16, paddingVertical: 15 },
   reviewCard: { backgroundColor: 'rgba(0,0,0,0.3)', borderRadius: 16, padding: 20 },
   reviewRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },

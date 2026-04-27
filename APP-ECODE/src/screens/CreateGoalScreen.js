@@ -55,10 +55,15 @@ export default function CreateGoalScreen({ navigation }) {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('@jwt_token');
+      
+      // Montar o payload com os nomes de campos corrigidos conforme erro de validação
       const payload = {
-        valorMeta: parseFloat(goalValue.replace(',', '.')),
-        TIPO_CONSUMO_id: selectedType.id
+        valor_meta: parseFloat(goalValue.replace(',', '.')),
+        TIPO_CONSUMO_id: parseInt(selectedType.id),
+        periodo: new Date().toISOString()
       };
+
+      console.log('Enviando meta:', JSON.stringify(payload));
 
       await api.post('/meta/Criar_Meta', payload, {
         headers: { Authorization: `Bearer ${token}` }
@@ -66,8 +71,18 @@ export default function CreateGoalScreen({ navigation }) {
 
       setIsSuccess(true);
     } catch (error) {
-      console.log('Erro ao criar meta:', error);
-      Alert.alert('Erro', 'Não foi possível salvar a meta. Tente novamente.');
+      console.log('Erro detalhado ao criar meta:', error);
+      
+      if (error.response && error.response.status === 422) {
+        const detalhes = error.response.data.detail;
+        let msg = 'Dados inválidos.';
+        if (Array.isArray(detalhes)) {
+          msg = detalhes.map(d => `${d.loc[d.loc.length - 1]}: ${d.msg}`).join('\n');
+        }
+        Alert.alert('Erro de Validação', msg);
+      } else {
+        Alert.alert('Erro', 'Não foi possível salvar a meta. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }

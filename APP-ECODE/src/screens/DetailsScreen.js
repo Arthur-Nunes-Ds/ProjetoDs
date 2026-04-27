@@ -33,6 +33,11 @@ export default function DetailsScreen({ navigation }) {
     agua: 0,
     residuos: 0,
     metaEnergia: 0,
+    metaAgua: 0,
+    metaGas: 0,
+    metaEnergiaVal: 0,
+    metaAguaVal: 0,
+    metaGasVal: 0,
     dica: "Carregando dica sustentável...",
     historicoSemestral: [0, 0, 0, 0, 0, 0] // Dados para o gráfico de linha
   });
@@ -104,6 +109,16 @@ export default function DetailsScreen({ navigation }) {
         else if (nome.includes('gas') || nome.includes('gás')) gasSum += item.valor;
       });
 
+      // 3. Processar metas (agora para todas as categorias)
+      const metaEnergiaVal = metas.find(m => m.tipoConsumo && m.tipoConsumo.toLowerCase().includes('energia'))?.valor_meta || 0;
+      const metaAguaVal = metas.find(m => m.tipoConsumo && (m.tipoConsumo.toLowerCase().includes('agua') || m.tipoConsumo.toLowerCase().includes('água')))?.valor_meta || 0;
+      const metaGasVal = metas.find(m => m.tipoConsumo && (m.tipoConsumo.toLowerCase().includes('gas') || m.tipoConsumo.toLowerCase().includes('gás')))?.valor_meta || 0;
+
+      // Calcular porcentagens (evitando divisão por zero)
+      const percEnergia = metaEnergiaVal > 0 ? Math.min(Math.round((energiaSum / metaEnergiaVal) * 100), 100) : 0;
+      const percAgua = metaAguaVal > 0 ? Math.min(Math.round((aguaSum / metaAguaVal) * 100), 100) : 0;
+      const percGas = metaGasVal > 0 ? Math.min(Math.round((gasSum / metaGasVal) * 100), 100) : 0;
+
       // 4. Buscar Dicas (de forma resiliente)
       let dicaSustentavel = "Economize energia desligando aparelhos em stand-by.";
       try {
@@ -128,7 +143,12 @@ export default function DetailsScreen({ navigation }) {
         energia: energiaSum,
         agua: aguaSum,
         residuos: gasSum,
-        metaEnergia: metaEnergia,
+        metaEnergia: percEnergia,
+        metaAgua: percAgua,
+        metaGas: percGas,
+        metaEnergiaVal,
+        metaAguaVal,
+        metaGasVal,
         dica: dicaSustentavel,
         historicoSemestral: historico
       });
@@ -211,11 +231,6 @@ export default function DetailsScreen({ navigation }) {
               <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); Alert.alert('Suporte', 'Central de ajuda em desenvolvimento. Contato: suporte@ecode.com'); }}>
                 <HelpCircle color="#a1a1aa" size={22} />
                 <Text style={styles.menuItemText}>Ajuda e Suporte</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.menuItem} onPress={() => { setIsMenuOpen(false); navigation.navigate('Account'); }}>
-                <Settings color="#a1a1aa" size={22} />
-                <Text style={styles.menuItemText}>Configurações</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
@@ -328,20 +343,62 @@ export default function DetailsScreen({ navigation }) {
               </View>
 
               {/* RODAPÉ DE DICAS E METAS */}
-              <View style={styles.goalCard}>
-                <Text style={styles.goalTitle}>Metas do Mês</Text>
-                <View style={styles.goalHeaderRow}>
-                  <Text style={styles.goalLabel}>Economia de Energia</Text>
-                  <Text style={styles.goalLabel}>{dados.metaEnergia}% Atingido</Text>
+              {(dados.metaEnergiaVal > 0 || dados.metaAguaVal > 0 || dados.metaGasVal > 0) && (
+                <View style={styles.goalCard}>
+                  <Text style={styles.goalTitle}>Suas Metas do Mês</Text>
+                  
+                  {/* Meta Energia */}
+                  {dados.metaEnergiaVal > 0 && (
+                    <View style={styles.goalItem}>
+                      <View style={styles.goalHeaderRow}>
+                        <Text style={styles.goalLabel}>Energia (Consumo vs Meta)</Text>
+                        <Text style={styles.goalLabel}>{dados.metaEnergia}%</Text>
+                      </View>
+                      <View style={styles.progressBarBackground}>
+                        <LinearGradient 
+                          colors={['#facc15', '#eab308']} 
+                          start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
+                          style={[styles.progressBarFill, { width: `${dados.metaEnergia}%` }]} 
+                        />
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Meta Água */}
+                  {dados.metaAguaVal > 0 && (
+                    <View style={styles.goalItem}>
+                      <View style={styles.goalHeaderRow}>
+                        <Text style={styles.goalLabel}>Água (Consumo vs Meta)</Text>
+                        <Text style={styles.goalLabel}>{dados.metaAgua}%</Text>
+                      </View>
+                      <View style={styles.progressBarBackground}>
+                        <LinearGradient 
+                          colors={['#60a5fa', '#3b82f6']} 
+                          start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
+                          style={[styles.progressBarFill, { width: `${dados.metaAgua}%` }]} 
+                        />
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Meta Gás */}
+                  {dados.metaGasVal > 0 && (
+                    <View style={styles.goalItem}>
+                      <View style={styles.goalHeaderRow}>
+                        <Text style={styles.goalLabel}>Gás (Consumo vs Meta)</Text>
+                        <Text style={styles.goalLabel}>{dados.metaGas}%</Text>
+                      </View>
+                      <View style={styles.progressBarBackground}>
+                        <LinearGradient 
+                          colors={['#4ade80', '#22c55e']} 
+                          start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
+                          style={[styles.progressBarFill, { width: `${dados.metaGas}%` }]} 
+                        />
+                      </View>
+                    </View>
+                  )}
                 </View>
-                <View style={styles.progressBarBackground}>
-                  <LinearGradient 
-                    colors={['#a855f7', '#ec4899']} 
-                    start={{x: 0, y: 0}} end={{x: 1, y: 0}} 
-                    style={[styles.progressBarFill, { width: `${dados.metaEnergia}%` }]} 
-                  />
-                </View>
-              </View>
+              )}
 
               <LinearGradient colors={['rgba(49, 46, 129, 0.4)', 'rgba(30, 58, 138, 0.4)']} style={styles.tipCard}>
                 <Text style={styles.tipTitle}>Dica Sustentável</Text>
@@ -396,7 +453,8 @@ const styles = StyleSheet.create({
   chartTitle: { color: '#d4d4d8', fontWeight: '600', marginBottom: 10, marginTop: 20, fontFamily: 'UBUNTU-400Regular' },
   chartStyle: { borderRadius: 16, alignSelf: 'center' },
   goalCard: { backgroundColor: 'rgba(24, 24, 27, 0.64)', borderColor: '#27272a', borderWidth: 1, borderRadius: 16, padding: 20, marginBottom: 15 },
-  goalTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 15, fontFamily: 'UBUNTU-400Regular' },
+  goalTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 20, fontFamily: 'UBUNTU-400Regular' },
+  goalItem: { marginBottom: 15 },
   goalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   goalLabel: { color: '#a1a1aa', fontSize: 14, fontFamily: 'UBUNTU-400Regular' },
   progressBarBackground: { height: 8, backgroundColor: '#3f3f46', borderRadius: 4, overflow: 'hidden' },

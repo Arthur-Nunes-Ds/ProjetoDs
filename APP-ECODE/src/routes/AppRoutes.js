@@ -11,6 +11,7 @@ import VerifyEmailScreen from '../screens/VerifyEmailScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import AccountScreen from '../screens/AccountScreen';
 import CreateGoalScreen from '../screens/CreateGoalScreen';
+import PreferencesScreen from '../screens/PreferencesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,6 +65,11 @@ export default function AppRoutes() {
         name="CreateGoal" 
         component={CreateGoalScreen} 
         options={{ title: 'Criar Meta' }} 
+      />
+      <Stack.Screen 
+        name="Preferences" 
+        component={PreferencesScreen} 
+        options={{ title: 'Preferências' }} 
       />
     </Stack.Navigator>
   );

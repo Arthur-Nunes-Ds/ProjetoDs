@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Linking } from 'react-native';
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
 import { AntDesign } from '@expo/vector-icons';
 
@@ -42,6 +42,7 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity> 
 
         <TouchableOpacity
+          onPress={() => Linking.openURL('https://2dsmoca.tech')}
           style={[styles.botao_redondo, {backgroundColor:'#ffffff00'}]}>
             <Text style={[styles.texto_botao,{color:'#fff'}]}>Ver recursos</Text>
         </TouchableOpacity>

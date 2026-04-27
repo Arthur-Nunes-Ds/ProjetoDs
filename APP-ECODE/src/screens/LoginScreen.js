@@ -13,7 +13,6 @@ export default function LoginScreen({ navigation }) {
   const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
 
-  const MODO_EXPO_GO = true; 
 
   const [fontsLoaded] = useFonts({
     Ubuntu_300Light,
@@ -126,21 +125,6 @@ export default function LoginScreen({ navigation }) {
           <Text style={[styles.texto_cadastro_link, { fontSize: 14, opacity: 0.8 }]}>Sobre o aplicativo</Text>
         </TouchableOpacity>
 
-        {/* BOTÃO DE DEBUG - REMOVER EM PRODUÇÃO */}
-        <TouchableOpacity 
-          style={{ marginTop: 30, padding: 10, backgroundColor: 'rgba(255, 0, 0, 0.2)', borderRadius: 10 }} 
-          onPress={async () => {
-             try {
-                // Usando AsyncStorage diretamente para evitar erro de referência se o hotswap falhar
-                await AsyncStorage.setItem('@jwt_token', 'DEBUG_TOKEN');
-                navigation.navigate('Detalhes');
-             } catch (e) {
-                console.log('Erro ao salvar token de debug:', e);
-             }
-          }}
-        >
-          <Text style={{ color: '#ffaaaa', fontSize: 12, fontWeight: 'bold' }}>DEBUG: Ignorar Login</Text>
-        </TouchableOpacity>
 
       </BlurView>
     </LinearGradient>

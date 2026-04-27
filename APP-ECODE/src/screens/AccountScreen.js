@@ -79,8 +79,14 @@ export default function AccountScreen({ navigation }) {
       Alert.alert('Conta Excluída', 'Sua conta foi removida com sucesso.');
       navigation.replace('Login');
     } catch (error) {
-      console.log('Erro ao excluir conta:', error);
-      Alert.alert('Erro', 'Não foi possível excluir a conta. Tente novamente mais tarde.');
+      console.log('Erro detalhado ao excluir conta:', error);
+      let errorMsg = 'Não foi possível excluir a conta. Tente novamente mais tarde.';
+      
+      if (error.response) {
+        errorMsg = `Erro ${error.response.status}: ${error.response.data.mensagem || 'Erro no servidor'}`;
+      }
+      
+      Alert.alert('Erro', errorMsg);
     } finally {
       setIsDeleting(false);
     }
@@ -124,7 +130,10 @@ export default function AccountScreen({ navigation }) {
               <Text style={styles.menuItemText}>Segurança e Privacidade</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity 
+              style={styles.menuItem} 
+              onPress={() => navigation.navigate('Preferences')}
+            >
               <View style={[styles.iconContainer, { backgroundColor: '#10b981' }]}>
                 <Settings color="#fff" size={20} />
               </View>
