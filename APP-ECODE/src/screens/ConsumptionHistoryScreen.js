@@ -117,7 +117,7 @@ export default function ConsumptionHistoryScreen({ navigation }) {
       <View style={styles.actionsWrapper}>
         <TouchableOpacity 
           style={styles.editBtn} 
-          onPress={() => navigation.navigate('RegisterConsumption', { editItem: item })}
+          onPress={() => navigation.navigate('Cadastro_Consumo', { editItem: item })}
         >
           <Edit3 size={20} color="#3b82f6" />
         </TouchableOpacity>

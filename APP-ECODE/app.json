@@ -15,7 +15,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.Guimcv.ecode",
+      "package": "com.EchoDe.EchoDe",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -29,8 +29,7 @@
       "expo-font",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
-      "@react-native-firebase/auth",
-      "@react-native-community/datetimepicker"
+      "@react-native-firebase/auth"
     ],
     "extra": {
       "eas": {

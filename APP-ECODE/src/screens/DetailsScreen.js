@@ -164,24 +164,35 @@ export default function DetailsScreen({ navigation }) {
       const percAgua = metaAguaVal > 0 ? Math.min(Math.round((aguaSum / metaAguaVal) * 100), 100) : 0;
       const percGas = metaGasVal > 0 ? Math.min(Math.round((gasSum / metaGasVal) * 100), 100) : 0;
 
-      // 4. Buscar Dicas (de forma resiliente)
+      // 4. Buscar Dicas (usando POST /dicas/Mostra_Dica para recomendação inteligente)
       let dicaSustentavel = "Economize energia desligando aparelhos em stand-by.";
       try {
-        const resDica = await api.get('/public/Listar_Dicas'); // Tentando endpoint público primeiro
-        const dicas = resDica.data.mensagem || [];
-        if (dicas.length > 0) {
-          dicaSustentavel = dicas[Math.floor(Math.random() * dicas.length)].descricao || dicas[0];
+        const token = await AsyncStorage.getItem('@jwt_token');
+        
+        // Tentativa com o endpoint de recomendação (ID 1 = Energia como padrão)
+        const resDica = await api.post('/dicas/Mostra_Dica', 
+          { tipo_consumo_id: 1 }, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (resDica.data && resDica.data.mensagem) {
+          // A API pode retornar uma string direta ou objeto
+          dicaSustentavel = resDica.data.mensagem.descrição || resDica.data.mensagem || dicaSustentavel;
         }
       } catch (e) { 
-        console.log('Erro ao buscar dicas:', e.message); 
-        // Tentativa 2: endpoint protegido
+        console.log('Erro ao buscar dicas (Mostra_Dica):', e.message);
+        // Se der 403 ou qualquer erro, tentamos o Lista_Dica como última instância
         try {
-          const resDica = await api.get('/dica/Listar_Dicas', { headers: { Authorization: `Bearer ${token}` } });
-          const dicas = resDica.data.mensagem || [];
-          if (dicas.length > 0) {
-            dicaSustentavel = dicas[Math.floor(Math.random() * dicas.length)].descricao || dicas[0];
+          const resDicaAlt = await api.get('/dicas/Lista_Dica?id=1', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (resDicaAlt.data && resDicaAlt.data.mensagem) {
+            const list = resDicaAlt.data.mensagem;
+            dicaSustentavel = (Array.isArray(list) ? list[0]?.descrição : list.descrição) || dicaSustentavel;
           }
-        } catch (e2) { console.log('Erro ao buscar dicas (auth):', e2.message); }
+        } catch (e2) {
+          console.log('Erro persistente nas dicas:', e2.message);
+        }
       }
 
       setDados({
@@ -528,8 +539,8 @@ export default function DetailsScreen({ navigation }) {
                   {dados.metaEnergiaVal > 0 && (
                     <View style={styles.goalItem}>
                       <View style={styles.goalHeaderRow}>
-                        <Text style={styles.goalLabel}>Energia (Consumo vs Meta)</Text>
-                        <Text style={styles.goalLabel}>{dados.metaEnergia}%</Text>
+                        <Text style={styles.goalLabel}>Energia (Meta: {dados.metaEnergiaVal} kWh)</Text>
+                        <Text style={styles.goalLabel}>{dados.energia.toFixed(1)} / {dados.metaEnergiaVal} ({dados.metaEnergia}%)</Text>
                       </View>
                       <View style={styles.progressBarBackground}>
                         <LinearGradient 
@@ -545,8 +556,8 @@ export default function DetailsScreen({ navigation }) {
                   {dados.metaAguaVal > 0 && (
                     <View style={styles.goalItem}>
                       <View style={styles.goalHeaderRow}>
-                        <Text style={styles.goalLabel}>Água (Consumo vs Meta)</Text>
-                        <Text style={styles.goalLabel}>{dados.metaAgua}%</Text>
+                        <Text style={styles.goalLabel}>Água (Meta: {dados.metaAguaVal} L)</Text>
+                        <Text style={styles.goalLabel}>{dados.agua.toFixed(0)} / {dados.metaAguaVal} ({dados.metaAgua}%)</Text>
                       </View>
                       <View style={styles.progressBarBackground}>
                         <LinearGradient 
@@ -562,8 +573,8 @@ export default function DetailsScreen({ navigation }) {
                   {dados.metaGasVal > 0 && (
                     <View style={styles.goalItem}>
                       <View style={styles.goalHeaderRow}>
-                        <Text style={styles.goalLabel}>Gás (Consumo vs Meta)</Text>
-                        <Text style={styles.goalLabel}>{dados.metaGas}%</Text>
+                        <Text style={styles.goalLabel}>Gás (Meta: {dados.metaGasVal} kg)</Text>
+                        <Text style={styles.goalLabel}>{dados.residuos.toFixed(1)} / {dados.metaGasVal} ({dados.metaGas}%)</Text>
                       </View>
                       <View style={styles.progressBarBackground}>
                         <LinearGradient 

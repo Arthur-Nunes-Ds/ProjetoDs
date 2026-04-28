@@ -59,7 +59,7 @@ export default function OCRScannerScreen({ navigation }) {
       const formData = new FormData();
       formData.append('base64Image', `data:image/jpeg;base64,${base64}`);
       formData.append('language', 'por');
-      formData.append('apikey', 'K81116668888957'); // Key pública de teste/exemplo
+      formData.append('apikey', 'K82803009888957'); // Key pública de teste/exemplo
 
       const response = await axios.post('https://api.ocr.space/parse/image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -125,7 +125,7 @@ export default function OCRScannerScreen({ navigation }) {
       });
 
       Alert.alert('Sucesso', 'Consumo registrado com sucesso via OCR!');
-      navigation.navigate('Dashboard');
+      navigation.navigate('Detalhes');
     } catch (error) {
       console.log('Erro ao salvar registro OCR:', error);
       Alert.alert('Erro', 'Não foi possível salvar o registro.');

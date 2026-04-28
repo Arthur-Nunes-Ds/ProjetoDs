@@ -11,7 +11,7 @@ import {
   Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Target, Zap, Droplet, Box, CheckCircle } from 'lucide-react-native';
+import { Target, Zap, Droplet, Box, CheckCircle, Trash2, Calendar } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,9 +23,12 @@ export default function CreateGoalScreen({ navigation }) {
   const [selectedType, setSelectedType] = useState(null);
   const [goalValue, setGoalValue] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [existingGoals, setExistingGoals] = useState([]);
+  const [loadingMetas, setLoadingMetas] = useState(true);
 
   useEffect(() => {
     carregarTipos();
+    carregarMetas();
   }, []);
 
   const carregarTipos = async () => {
@@ -44,6 +47,45 @@ export default function CreateGoalScreen({ navigation }) {
     } finally {
       setLoadingTipos(false);
     }
+  };
+  const carregarMetas = async () => {
+    try {
+      const token = await AsyncStorage.getItem('@jwt_token');
+      const response = await api.get('/meta/Listar_Metas', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExistingGoals(response.data.mensagem || []);
+    } catch (error) {
+      console.log('Erro ao carregar metas:', error);
+    } finally {
+      setLoadingMetas(false);
+    }
+  };
+
+  const handleDeleteGoal = async (id) => {
+    Alert.alert(
+      'Excluir Meta',
+      'Tem certeza que deseja remover esta meta?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { 
+          text: 'Excluir', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem('@jwt_token');
+              await api.delete(`/meta/Del_Meta/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              carregarMetas();
+              Alert.alert('Sucesso', 'Meta removida com sucesso!');
+            } catch (error) {
+              Alert.alert('Erro', 'Não foi possível excluir a meta.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleCreateGoal = async () => {
@@ -176,6 +218,41 @@ export default function CreateGoalScreen({ navigation }) {
               </TouchableOpacity>
             </View>
           )}
+          
+          <View style={styles.existingGoalsSection}>
+            <Text style={styles.sectionTitle}>Suas Metas Atuais</Text>
+            {loadingMetas ? (
+              <ActivityIndicator color="#fff" style={{ marginTop: 20 }} />
+            ) : existingGoals.length > 0 ? (
+              existingGoals.map((goal) => (
+                <View key={goal.id} style={styles.goalCard}>
+                  <View style={styles.goalInfo}>
+                    <View style={styles.goalIconWrapper}>
+                      {goal.tipoConsumo.toLowerCase().includes('energia') ? (
+                        <Zap size={20} color="#facc15" />
+                      ) : goal.tipoConsumo.toLowerCase().includes('agua') || goal.tipoConsumo.toLowerCase().includes('água') ? (
+                        <Droplet size={20} color="#60a5fa" />
+                      ) : (
+                        <Box size={20} color="#4ade80" />
+                      )}
+                    </View>
+                    <View>
+                      <Text style={styles.goalCardTitle}>{goal.tipoConsumo}</Text>
+                      <Text style={styles.goalCardValue}>Limite: {goal.valorMeta} {goal.tipoConsumo.toLowerCase().includes('energia') ? 'kWh' : goal.tipoConsumo.toLowerCase().includes('agua') || goal.tipoConsumo.toLowerCase().includes('água') ? 'L' : 'kg'}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.deleteBtn}
+                    onPress={() => handleDeleteGoal(goal.id)}
+                  >
+                    <Trash2 size={20} color="#f87171" />
+                  </TouchableOpacity>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.noGoalsText}>Nenhuma meta definida ainda.</Text>
+            )}
+          </View>
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -250,5 +327,24 @@ const styles = StyleSheet.create({
   successTitle: { color: '#fff', fontSize: 32, fontWeight: 'bold', marginTop: 20 },
   successSubtitle: { color: 'rgba(255, 255, 255, 0.8)', fontSize: 16, marginTop: 10, textAlign: 'center' },
   finishBtn: { backgroundColor: '#fff', paddingVertical: 15, paddingHorizontal: 40, borderRadius: 30, marginTop: 40 },
-  finishBtnText: { color: '#1A2980', fontWeight: 'bold', fontSize: 16 }
+  finishBtnText: { color: '#1A2980', fontWeight: 'bold', fontSize: 16 },
+  existingGoalsSection: { marginTop: 40, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.1)', paddingTop: 30 },
+  sectionTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
+  goalCard: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.2)', 
+    padding: 15, 
+    borderRadius: 15, 
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
+  goalInfo: { flexDirection: 'row', alignItems: 'center' },
+  goalIconWrapper: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  goalCardTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  goalCardValue: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
+  deleteBtn: { padding: 10 },
+  noGoalsText: { color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 20, fontStyle: 'italic' }
 });
