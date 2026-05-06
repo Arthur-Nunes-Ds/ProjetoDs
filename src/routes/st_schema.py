@@ -94,30 +94,27 @@ async def st_token(request: Request):
 
 # --- Webhook Endpoint ---
 
+# Rota para /st/webhook
 @Rotas_ST.post("/webhook")
-async def st_webhook(
-    request: Request,
-    session: Session = Depends(get_sesion)
-):
-    """Main Webhook for SmartThings interactions."""
+async def st_webhook(request: Request):
     payload = await request.json()
+    print(f"\n>>> RECEBIDO DA SAMSUNG: {payload}\n")
     
-    # Log para debug (Arthur no Backend)
-    print(f"\n--- DADOS RECEBIDOS DA SAMSUNG ---")
-    print(payload)
-    print(f"----------------------------------\n")
-
+    # Mantendo a lógica de confirmação para a Samsung validar a URL
     headers = payload.get("headers", {})
-    interaction_type = headers.get("interactionType")
-    request_id = headers.get("requestId")
-    
-    # A Samsung testa o seu servidor assim:
-    if interaction_type == "interactionResult":
-        return {"status": "OK"}
-        
-    # Se for o desafio inicial (Lifecycle Challenge):
-    if interaction_type == "confirmation":
+    if headers.get("interactionType") == "confirmation":
         return {"targetUrl": "https://api.2dsmoca.tech/st/webhook"}
+        
+    return {"status": "success"}
+
+# Rota para /st/st/webhook (Trata o 404 observado nos logs)
+@Rotas_ST.post("/st/webhook")
+async def st_webhook_double(request: Request):
+    payload = await request.json()
+    print(f"\n>>> RECEBIDO DA SAMSUNG (Double Prefix): {payload}\n")
     
-    # Resposta genérica de sucesso para evitar 401/500 durante testes de conexão
-    return {"status": "success", "interactionType": interaction_type}
+    headers = payload.get("headers", {})
+    if headers.get("interactionType") == "confirmation":
+        return {"targetUrl": "https://api.2dsmoca.tech/st/st/webhook"}
+        
+    return {"status": "success"}
