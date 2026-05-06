@@ -94,27 +94,54 @@ async def st_token(request: Request):
 
 # --- Webhook Endpoint ---
 
-# Rota para /st/webhook
-@Rotas_ST.post("/webhook")
-async def st_webhook(request: Request):
+@Rotas_ST.post("/webhook", dependencies=[Depends(verify_smartthings_signature)])
+async def st_webhook(
+    request: Request,
+    session: Session = Depends(get_sesion)
+):
+    """Main Webhook for SmartThings interactions."""
     payload = await request.json()
-    print(f"\n>>> RECEBIDO DA SAMSUNG: {payload}\n")
-    
-    # Mantendo a lógica de confirmação para a Samsung validar a URL
     headers = payload.get("headers", {})
-    if headers.get("interactionType") == "confirmation":
-        return {"targetUrl": "https://api.2dsmoca.tech/st/webhook"}
+    
+    # Busca o interactionType no header (padrão Schema) ou na raiz (fallback)
+    interaction_type = headers.get("interactionType") or payload.get("interactionType")
+    request_id = headers.get("requestId")
+    
+    # A Samsung testa o seu servidor assim:
+    if interaction_type == "interactionResult":
+        return JSONResponse(status_code=200, content={})
         
-    return {"status": "success"}
+    # Se for o desafio inicial (Lifecycle Challenge):
+    if interaction_type == "confirmation":
+        return JSONResponse(
+            status_code=200, 
+            content={"targetUrl": "https://api.2dsmoca.tech/st/webhook"}
+        )
+    
+    # Get user_id from the access token provided in the callbackAuthentication
+    # Note: SmartThings sends the token in authentication.token
+    auth = payload.get("authentication", {})
+    token = auth.get("token")
+    
+    if not token:
+        return JSONResponse(status_code=401, content={"error": "Missing token in payload"})
+    
+    try:
+        # Reusing your existing JWT verification
+        # verificar_jwt returns (id, is_login, is_admin, is_rest_senha, jit)
+        user_id, _, _, _, _ = verificar_jwt(token)
+    except Exception:
+        return JSONResponse(status_code=401, content={"error": "Invalid token"})
 
-# Rota para /st/st/webhook (Trata o 404 observado nos logs)
-@Rotas_ST.post("/st/webhook")
-async def st_webhook_double(request: Request):
-    payload = await request.json()
-    print(f"\n>>> RECEBIDO DA SAMSUNG (Double Prefix): {payload}\n")
+    if interaction_type == "discoveryRequest":
+        return st_service.handle_discovery(session, user_id, request_id)
     
-    headers = payload.get("headers", {})
-    if headers.get("interactionType") == "confirmation":
-        return {"targetUrl": "https://api.2dsmoca.tech/st/st/webhook"}
-        
-    return {"status": "success"}
+    elif interaction_type == "stateRefreshRequest":
+        devices = payload.get("devices", [])
+        return st_service.handle_state_refresh(session, user_id, request_id, devices)
+    
+    elif interaction_type == "commandRequest":
+        devices_commands = payload.get("devices", [])
+        return st_service.handle_command(session, user_id, request_id, devices_commands)
+    
+    return JSONResponse(status_code=400, content={"error": "Unsupported interaction type"})
