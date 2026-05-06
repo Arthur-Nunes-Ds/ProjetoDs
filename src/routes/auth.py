@@ -29,9 +29,16 @@ async def authorize(
     scope: Optional[str] = Query(None)
 ):
     """Exibe a página de login para autorização OAuth2."""
-    print(f"DEBUG OAUTH AUTHORIZE: client_id={client_id}, redirect_uri={redirect_uri}, state={state}")
+    print("="*50)
+    print(f"DEBUG OAUTH AUTHORIZE REQUEST RECEIVED")
+    print(f"Method: {request.method}")
+    print(f"URL: {request.url}")
+    print(f"Headers: {request.headers}")
+    print(f"Query Params: client_id={client_id}, redirect_uri={redirect_uri}, state={state}, response_type={response_type}")
+    print("="*50)
     
     if not client_id or not redirect_uri:
+        print("ERROR: client_id or redirect_uri missing")
         return HTMLResponse(
             "<html><body><h1>Erro de Configuração OAuth</h1><p>Parâmetros client_id ou redirect_uri ausentes na requisição.</p></body></html>", 
             status_code=400

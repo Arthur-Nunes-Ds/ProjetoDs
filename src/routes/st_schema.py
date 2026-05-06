@@ -144,9 +144,9 @@ async def st_webhook(request: Request):
                 "headers": response_headers,
                 "devices": [
                     {
-                        "externalDeviceId": "sensor-echo-001",
-                        "friendlyName": "Medidor EchoDE",
-                        "deviceHandlerType": "SmartPlug",
+                        "externalDeviceId": "sensor-echode-001",
+                        "friendlyName": "Consumo EchoDE",
+                        "deviceHandlerType": "c2c-energy-meter",
                         "deviceTypeName": "SmartPlug",
                         "manufacturerInfo": {
                             "manufacturerName": "EchoDE",
@@ -155,9 +155,9 @@ async def st_webhook(request: Request):
                             "swVersion": "1.0"
                         },
                         "capabilities": [
-                            {"capability": "st.powerMeter", "version": 1},
                             {"capability": "st.energyMeter", "version": 1},
-                            {"capability": "st.switch", "version": 1}
+                            {"capability": "st.powerMeter", "version": 1},
+                            {"capability": "st.refresh", "version": 1}
                         ],
                         "categories": [{"category": "SmartPlug"}]
                     }
