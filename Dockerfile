@@ -1,5 +1,5 @@
 #Verção da Imagem do Python
-FROM python:3.14.3-slim
+FROM python:3.13-slim
 
 #cira a pasta app dentro do os do docker
 
