@@ -13,19 +13,25 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
-import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut, DollarSign, Zap, Droplet, Box, Flame, History, Cpu } from 'lucide-react-native';
+import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut, DollarSign, Zap, Droplet, Box, Flame, History, Cpu, Sparkles, Users } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
 // Importações do projeto reestruturado
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { calcularMediaHistorica, detectarAnomalia, calcularCO2, calcularImpactoVerde, calcularEcoScore } from '../utils/ecoUtils';
+import { checkAchievements } from '../services/achievementService';
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function DetailsScreen({ navigation }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [anomalies, setAnomalies] = useState([]);
+  const [newAchievement, setNewAchievement] = useState(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   // Estado que receberá os dados reais da API
   const [dados, setDados] = useState({
@@ -38,6 +44,7 @@ export default function DetailsScreen({ navigation }) {
     metaEnergiaVal: 0,
     metaAguaVal: 0,
     metaGasVal: 0,
+    ecoScore: 100,
     dica: "Carregando dica sustentável...",
     historicoEnergia: [0, 0, 0, 0, 0, 0],
     historicoAgua: [0, 0, 0, 0, 0, 0],
@@ -54,8 +61,30 @@ export default function DetailsScreen({ navigation }) {
 
   const [usuario, setUsuario] = useState({ nome: 'Usuário', email: '' });
 
+  // Tutorial steps
+  const tutorialSteps = [
+    {
+      title: "Bem-vindo ao ECODE! 🌱",
+      desc: "Vamos transformar seus hábitos em um impacto positivo para o planeta.",
+      icon: <Sparkles size={60} color="#facc15" />
+    },
+    {
+      title: "Eco-Score",
+      desc: "Sua pontuação geral de sustentabilidade. Mantenha-a no verde cumprindo suas metas!",
+      icon: <Activity size={60} color="#4ade80" />
+    }
+  ];
+
+  const checkTutorial = async () => {
+    const seen = await AsyncStorage.getItem('@tutorial_seen');
+    if (!seen) {
+      setShowTutorial(true);
+    }
+  };
+
   // Função para buscar os dados do Dashboard na API
   const buscarDadosDashboard = async () => {
+    checkTutorial();
     setIsLoading(true);
     try {
       // 0. Carregar Tarifas
@@ -154,6 +183,30 @@ export default function DetailsScreen({ navigation }) {
         else if (nome.includes('gas') || nome.includes('gás')) gasSum += item.valor;
       });
 
+      // 3. Processar Anomalias
+      const detectedAnomalies = [];
+      const categorias = [
+        { nome: 'Energia', history: hEnergia },
+        { nome: 'Água', history: hAgua },
+        { nome: 'Gás', history: hGas }
+      ];
+
+      categorias.forEach(cat => {
+        const media = calcularMediaHistorica(consumos, cat.nome);
+        const ultimoValor = cat.history[cat.history.length - 1];
+        if (ultimoValor > 0 && detectarAnomalia(ultimoValor, media)) {
+          const diff = (((ultimoValor / media) - 1) * 100).toFixed(0);
+          detectedAnomalies.push({ categoria: cat.nome, diff });
+        }
+      });
+      setAnomalies(detectedAnomalies);
+
+      // 4. Verificar Conquistas
+      const unlocked = await checkAchievements(consumos);
+      if (unlocked.length > 0) {
+        setNewAchievement(unlocked[0]); // Mostra a primeira nova conquista
+      }
+
       // 3. Processar metas (agora para todas as categorias)
       const metaEnergiaVal = metas.find(m => m.tipoConsumo && m.tipoConsumo.toLowerCase().includes('energia'))?.valor_meta || 0;
       const metaAguaVal = metas.find(m => m.tipoConsumo && (m.tipoConsumo.toLowerCase().includes('agua') || m.tipoConsumo.toLowerCase().includes('água')))?.valor_meta || 0;
@@ -195,16 +248,21 @@ export default function DetailsScreen({ navigation }) {
         }
       }
 
-      setDados({
+      const currentStats = {
         energia: energiaSum,
         agua: aguaSum,
         residuos: gasSum,
+        metaEnergiaVal,
+        metaAguaVal,
+        metaGasVal
+      };
+
+      setDados({
+        ...currentStats,
         metaEnergia: percEnergia,
         metaAgua: percAgua,
         metaGas: percGas,
-        metaEnergiaVal,
-        metaAguaVal,
-        metaGasVal,
+        ecoScore: calcularEcoScore(currentStats),
         dica: dicaSustentavel,
         historicoEnergia: hEnergia,
         historicoAgua: hAgua,
@@ -237,6 +295,15 @@ export default function DetailsScreen({ navigation }) {
     }, [])
   );
 
+  const nextTutorialStep = async () => {
+    if (tutorialStep < tutorialSteps.length - 1) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      setShowTutorial(false);
+      await AsyncStorage.setItem('@tutorial_seen', 'true');
+    }
+  };
+
   const chartConfig = {
     backgroundGradientFrom: "#18181b",
     backgroundGradientFromOpacity: 0,
@@ -252,10 +319,35 @@ export default function DetailsScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={['#1b3194', '#5a82af', '#3082cf']} style={styles.container}>
+    <LinearGradient colors={['#0F172A', '#1E293B']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         
-        {/* === MODAL DO MENU SANDUÍCHE === */}
+        {/* TUTORIAL MODAL */}
+        <Modal visible={showTutorial} transparent animationType="fade">
+          <View style={styles.tutorialOverlay}>
+            <View style={styles.tutorialCard}>
+              <View style={styles.tutorialIconWrapper}>
+                {tutorialSteps[tutorialStep].icon}
+              </View>
+              <Text style={styles.tutorialTitle}>{tutorialSteps[tutorialStep].title}</Text>
+              <Text style={styles.tutorialDesc}>{tutorialSteps[tutorialStep].desc}</Text>
+              
+              <View style={styles.tutorialDots}>
+                {tutorialSteps.map((_, i) => (
+                  <View key={i} style={[styles.tutorialDot, i === tutorialStep && styles.tutorialDotActive]} />
+                ))}
+              </View>
+
+              <TouchableOpacity style={styles.tutorialBtn} onPress={nextTutorialStep}>
+                <Text style={styles.tutorialBtnText}>
+                  {tutorialStep === tutorialSteps.length - 1 ? "Começar Agora" : "Próximo"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* MODAL DO MENU SANDUÍCHE */}
         <Modal
           visible={isMenuOpen}
           animationType="fade"
@@ -315,10 +407,39 @@ export default function DetailsScreen({ navigation }) {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.hamburgerBtn}>
               <AntDesign name="left" color="#fff" size={28} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>EcoMonitor</Text>
+            <Text style={styles.headerTitle}>Dashboard</Text>
             <TouchableOpacity onPress={() => setIsMenuOpen(true)} style={styles.hamburgerBtn}>
               <Menu color="#fff" size={28} />
             </TouchableOpacity>
+          </View>
+
+          {/* ECO-SCORE SECTION */}
+          <View style={styles.ecoScoreSection}>
+            <View style={styles.ecoScoreHeader}>
+              <Sparkles size={20} color="#facc15" />
+              <Text style={styles.ecoScoreTitle}>SEU ECO-SCORE</Text>
+            </View>
+            <View style={styles.ecoScoreMain}>
+              <Text style={[
+                styles.ecoScoreValue, 
+                { color: dados.ecoScore > 80 ? '#4ade80' : dados.ecoScore > 50 ? '#facc15' : '#f87171' }
+              ]}>
+                {dados.ecoScore}
+              </Text>
+              <View style={styles.ecoScoreInfo}>
+                <Text style={styles.ecoScoreStatus}>
+                  {dados.ecoScore > 80 ? 'Herói do Planeta' : dados.ecoScore > 50 ? 'Em Evolução' : 'Alerta Ecológico'}
+                </Text>
+                <Text style={styles.ecoScoreSub}>Baseado no cumprimento de suas metas</Text>
+              </View>
+            </View>
+            <View style={styles.ecoScoreBarBg}>
+              <LinearGradient
+                colors={dados.ecoScore > 80 ? ['#4ade80', '#22c55e'] : dados.ecoScore > 50 ? ['#facc15', '#eab308'] : ['#f87171', '#ef4444']}
+                start={{x: 0, y: 0}} end={{x: 1, y: 0}}
+                style={[styles.ecoScoreBarFill, { width: `${dados.ecoScore}%` }]}
+              />
+            </View>
           </View>
 
           <TouchableOpacity 
@@ -373,6 +494,15 @@ export default function DetailsScreen({ navigation }) {
                   <Text style={styles.iotShortcutStatus}>4 Dispositivos</Text>
                 </TouchableOpacity>
 
+                <View style={[styles.cardInfo, { borderColor: 'rgba(74, 222, 128, 0.3)' }]}>
+                  <Text style={styles.cardLabel}>Impacto Ecológico</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+                    <Zap size={14} color="#facc15" style={{ marginRight: 5 }} />
+                    <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>{calcularCO2(dados.energia)}kg CO2</Text>
+                  </View>
+                  <Text style={[styles.cardSubText, { color: '#4ade80' }]}>~{calcularImpactoVerde(dados.agua)} árvores salvas</Text>
+                </View>
+
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardLabel}>Energia (Mês)</Text>
                   <Text style={[styles.cardValue, { color: '#facc15' }]}>
@@ -403,6 +533,24 @@ export default function DetailsScreen({ navigation }) {
                   </Text>
                 </View>
               </ScrollView>
+
+              {/* ALERTAS DE ANOMALIA */}
+              {anomalies.length > 0 && (
+                <View style={styles.anomalyContainer}>
+                  {anomalies.map((anom, idx) => (
+                    <View key={idx} style={styles.anomalyCard}>
+                      <Activity size={20} color="#f87171" />
+                      <View style={{ marginLeft: 12, flex: 1 }}>
+                        <Text style={styles.anomalyTitle}>Pico detectado em {anom.categoria}</Text>
+                        <Text style={styles.anomalySub}>{anom.diff}% acima da sua média habitual.</Text>
+                      </View>
+                      <TouchableOpacity style={styles.anomalyAction} onPress={() => navigation.navigate('ConsumptionHistory')}>
+                        <Text style={styles.anomalyActionText}>Ver</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
 
               {/* DASHBOARD GRÁFICO */}
               <View style={styles.dashboardContainer}>
@@ -596,6 +744,35 @@ export default function DetailsScreen({ navigation }) {
           )}
 
         </ScrollView>
+
+        {/* MODAL DE CONQUISTA */}
+        <Modal
+          visible={!!newAchievement}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={styles.achievementOverlay}>
+            <LinearGradient 
+              colors={['#1e293b', '#0f172a']} 
+              style={styles.achievementModal}
+            >
+              <AntDesign name="Trophy" size={60} color="#facc15" />
+              <Text style={styles.achievementTitle}>Nova Conquista!</Text>
+              <View style={[styles.badgeIconLarge, { backgroundColor: newAchievement?.color + '22' }]}>
+                <AntDesign name={newAchievement?.icon} size={40} color={newAchievement?.color} />
+              </View>
+              <Text style={styles.achievementName}>{newAchievement?.title}</Text>
+              <Text style={styles.achievementDesc}>{newAchievement?.description}</Text>
+              
+              <TouchableOpacity 
+                style={styles.achievementBtn} 
+                onPress={() => setNewAchievement(null)}
+              >
+                <Text style={styles.achievementBtnText}>Incrível!</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
+        </Modal>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -692,4 +869,51 @@ const styles = StyleSheet.create({
   tipCard: { borderColor: 'rgba(99, 102, 241, 0.3)', borderWidth: 1, borderRadius: 16, padding: 20 },
   tipTitle: { color: '#a5b4fc', fontSize: 18, fontWeight: 'bold', marginBottom: 10, fontFamily: 'UBUNTU-400Regular' },
   tipText: { color: '#d4d4d8', fontSize: 14, lineHeight: 22, fontFamily: 'UBUNTU-400Regular' },
+  
+  anomalyContainer: { paddingHorizontal: 0, marginBottom: 20 },
+  anomalyCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(248, 113, 113, 0.1)', padding: 15, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(248, 113, 113, 0.3)', marginBottom: 10 },
+  anomalyTitle: { color: '#f87171', fontWeight: 'bold', fontSize: 14 },
+  anomalySub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+  anomalyAction: { backgroundColor: 'rgba(248, 113, 113, 0.2)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  anomalyActionText: { color: '#f87171', fontSize: 12, fontWeight: 'bold' },
+  
+  achievementOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
+  achievementModal: { width: '85%', padding: 30, borderRadius: 32, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  achievementTitle: { color: '#facc15', fontSize: 18, fontWeight: 'bold', marginTop: 15, textTransform: 'uppercase' },
+  badgeIconLarge: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center', marginVertical: 25 },
+  achievementName: { color: '#fff', fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+  achievementDesc: { color: 'rgba(255,255,255,0.6)', fontSize: 14, textAlign: 'center', marginTop: 10, lineHeight: 20 },
+  achievementBtn: { backgroundColor: '#facc15', paddingVertical: 15, paddingHorizontal: 40, borderRadius: 30, marginTop: 30 },
+  achievementBtnText: { color: '#000', fontWeight: 'bold', fontSize: 16 },
+
+  ecoScoreSection: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 20, marginBottom: 25, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  ecoScoreHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  ecoScoreTitle: { color: '#facc15', fontSize: 12, fontWeight: 'bold', marginLeft: 8, letterSpacing: 1 },
+  ecoScoreMain: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  ecoScoreValue: { fontSize: 48, fontWeight: 'bold', fontFamily: 'UBUNTU-400Regular' },
+  ecoScoreInfo: { marginLeft: 20, flex: 1 },
+  ecoScoreStatus: { color: '#fff', fontSize: 18, fontWeight: 'bold', fontFamily: 'UBUNTU-400Regular' },
+  ecoScoreSub: { color: '#a1a1aa', fontSize: 11, marginTop: 2, fontFamily: 'UBUNTU-400Regular' },
+  ecoScoreBarBg: { height: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' },
+  ecoScoreBarFill: { height: '100%', borderRadius: 3 },
+
+  tutorialOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  tutorialCard: { backgroundColor: '#1E293B', borderRadius: 30, padding: 30, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  tutorialIconWrapper: { width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(38, 208, 206, 0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 25 },
+  tutorialTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold', textAlign: 'center', marginBottom: 15 },
+  tutorialDesc: { color: 'rgba(255,255,255,0.6)', fontSize: 16, textAlign: 'center', lineHeight: 24, marginBottom: 30 },
+  tutorialDots: { flexDirection: 'row', gap: 8, marginBottom: 30 },
+  tutorialDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)' },
+  tutorialDotActive: { backgroundColor: '#26D0CE', width: 24 },
+  tutorialBtn: { backgroundColor: '#26D0CE', paddingVertical: 18, borderRadius: 15, width: '100%', alignItems: 'center' },
+  tutorialBtnText: { color: '#0F172A', fontWeight: 'bold', fontSize: 16 },
+
+  benchmarkSection: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 24, padding: 20, marginBottom: 25, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  benchmarkHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  benchmarkTitle: { color: '#26D0CE', fontSize: 11, fontWeight: 'bold', marginLeft: 8, letterSpacing: 1 },
+  benchmarkGrid: { flexDirection: 'row', gap: 15 },
+  benchmarkItem: { flex: 1, backgroundColor: 'rgba(255,255,255,0.03)', padding: 12, borderRadius: 15 },
+  benchmarkLabel: { color: '#a1a1aa', fontSize: 10, fontWeight: 'bold', marginBottom: 4 },
+  benchmarkValue: { color: '#fff', fontSize: 13, fontWeight: 'bold' },
+  benchmarkDiff: { fontSize: 10, fontWeight: 'bold', marginTop: 4 }
 });

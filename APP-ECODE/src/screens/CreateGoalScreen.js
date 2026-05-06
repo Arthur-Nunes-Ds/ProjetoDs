@@ -11,10 +11,11 @@ import {
   Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Target, Zap, Droplet, Box, CheckCircle, Trash2, Calendar } from 'lucide-react-native';
+import { Target, Zap, Droplet, Box, CheckCircle, Trash2, Calendar, Sparkles } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import api from '../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { calcularMediaHistorica, sugerirMeta } from '../utils/ecoUtils';
 
 export default function CreateGoalScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
@@ -25,11 +26,36 @@ export default function CreateGoalScreen({ navigation }) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [existingGoals, setExistingGoals] = useState([]);
   const [loadingMetas, setLoadingMetas] = useState(true);
+  const [consumos, setConsumos] = useState([]);
+  const [suggestedGoal, setSuggestedGoal] = useState(null);
 
   useEffect(() => {
     carregarTipos();
     carregarMetas();
+    carregarConsumos();
   }, []);
+
+  const carregarConsumos = async () => {
+    try {
+      const token = await AsyncStorage.getItem('@jwt_token');
+      const response = await api.get('/consumo/Listar_Consumos', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConsumos(response.data.mensagem || []);
+    } catch (e) {
+      console.log('Erro ao buscar consumos:', e.message);
+    }
+  };
+
+  const selecionarTipo = (tipo) => {
+    setSelectedType(tipo);
+    const media = calcularMediaHistorica(consumos, tipo.nome);
+    if (media > 0) {
+      setSuggestedGoal(sugerirMeta(media));
+    } else {
+      setSuggestedGoal(null);
+    }
+  };
 
   const carregarTipos = async () => {
     try {
@@ -183,7 +209,7 @@ export default function CreateGoalScreen({ navigation }) {
                   <TouchableOpacity 
                     key={tipo.id} 
                     style={[styles.typeCard, isSelected && styles.typeCardActive]}
-                    onPress={() => setSelectedType(tipo)}
+                    onPress={() => selecionarTipo(tipo)}
                   >
                     <Icone size={24} color={isSelected ? '#1A2980' : '#fff'} />
                     <Text style={[styles.typeText, isSelected && styles.typeTextActive]}>{tipo.nome}</Text>
@@ -204,6 +230,18 @@ export default function CreateGoalScreen({ navigation }) {
                 value={goalValue}
                 onChangeText={setGoalValue}
               />
+
+              {suggestedGoal && (
+                <TouchableOpacity 
+                  style={styles.aiSuggestion}
+                  onPress={() => setGoalValue(suggestedGoal)}
+                >
+                  <Sparkles size={16} color="#fff" />
+                  <Text style={styles.aiSuggestionText}>
+                    Recomendação IA: {suggestedGoal} {selectedType.unidade_medida}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity 
                 style={styles.submitBtn} 
@@ -346,5 +384,17 @@ const styles = StyleSheet.create({
   goalCardTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   goalCardValue: { color: 'rgba(255,255,255,0.6)', fontSize: 14 },
   deleteBtn: { padding: 10 },
-  noGoalsText: { color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 20, fontStyle: 'italic' }
+  noGoalsText: { color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 20, fontStyle: 'italic' },
+  
+  aiSuggestion: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(168, 85, 247, 0.3)', 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.4)'
+  },
+  aiSuggestionText: { color: '#fff', marginLeft: 10, fontWeight: 'bold', fontSize: 13 }
 });

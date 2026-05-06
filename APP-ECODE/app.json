@@ -29,7 +29,20 @@
       "expo-font",
       "@react-native-google-signin/google-signin",
       "@react-native-firebase/app",
-      "@react-native-firebase/auth"
+      "@react-native-firebase/auth",
+      "expo-notifications",
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Permitir que o ECODE use a câmera para escanear faturas."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Permitir que o ECODE acesse sua galeria para analisar contas."
+        }
+      ]
     ],
     "extra": {
       "eas": {

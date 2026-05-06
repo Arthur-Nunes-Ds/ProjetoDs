@@ -15,7 +15,6 @@ import PreferencesScreen from '../screens/PreferencesScreen';
 import RatesScreen from '../screens/RatesScreen';
 import ConsumptionHistoryScreen from '../screens/ConsumptionHistoryScreen';
 import IoTControlScreen from '../screens/IoTControlScreen';
-import OCRScannerScreen from '../screens/OCRScannerScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -89,11 +88,6 @@ export default function AppRoutes() {
         name="IoTControl" 
         component={IoTControlScreen} 
         options={{ title: 'Casa Inteligente' }} 
-      />
-      <Stack.Screen 
-        name="OCRScanner" 
-        component={OCRScannerScreen} 
-        options={{ title: 'Scanner Inteligente' }} 
       />
     </Stack.Navigator>
   );

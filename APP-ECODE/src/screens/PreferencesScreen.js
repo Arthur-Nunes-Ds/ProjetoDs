@@ -51,32 +51,19 @@ export default function PreferencesScreen({ navigation }) {
     try {
       const token = await AsyncStorage.getItem('@jwt_token');
       
-      console.log('Tentando salvar nome:', nome.trim());
-
-      // Atualizando o nome do usuário usando o endpoint correto identificado no OpenAPI
       const payload = {};
       if (nome.trim()) payload.nome = nome.trim();
       if (senha.trim()) payload.senha = senha.trim();
 
-      console.log('DEBUG PAYLOAD:', payload);
-
-      const response = await api.put('/user/Editar_User', 
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      console.log('Resposta da API:', JSON.stringify(response.data));
+      await api.put('/user/Editar_User', payload, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      });
 
       Alert.alert('Sucesso', 'Suas alterações foram salvas!');
       navigation.goBack();
     } catch (error) {
       console.log('Erro detalhado ao salvar alterações:', error);
-      if (error.response) {
-        console.log('Dados do erro:', JSON.stringify(error.response.data));
-        Alert.alert('Erro', `Servidor respondeu com erro: ${error.response.data.mensagem || 'Verifique os dados'}`);
-      } else {
-        Alert.alert('Erro', 'Não foi possível salvar as alterações. Verifique sua conexão.');
-      }
+      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     } finally {
       setIsSaving(false);
     }

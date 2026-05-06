@@ -23,21 +23,40 @@ export default function RatesScreen({ navigation }) {
     water: '0.01',
     gas: '7.50'
   });
+  const [consumos, setConsumos] = useState({ energy: 0, water: 0, gas: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    loadRates();
+    loadData();
   }, []);
 
-  const loadRates = async () => {
+  const loadData = async () => {
     try {
+      // Carregar Tarifas
       const savedRates = await AsyncStorage.getItem('@consumption_rates');
       if (savedRates) {
         setRates(JSON.parse(savedRates));
       }
+
+      // Carregar Consumos para Simulação
+      const token = await AsyncStorage.getItem('@jwt_token');
+      const response = await api.get('/consumo/Listar_Consumos', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const lista = response.data.mensagem || [];
+      
+      const sums = { energy: 0, water: 0, gas: 0 };
+      lista.forEach(item => {
+        const nome = item.tipoConsumo.toLowerCase();
+        if (nome.includes('energia')) sums.energy += item.valor;
+        else if (nome.includes('agua') || nome.includes('água')) sums.water += item.valor;
+        else if (nome.includes('gas') || nome.includes('gás')) sums.gas += item.valor;
+      });
+      setConsumos(sums);
+
     } catch (error) {
-      console.log('Erro ao carregar tarifas:', error);
+      console.log('Erro ao carregar dados:', error);
     } finally {
       setIsLoading(false);
     }
@@ -46,11 +65,10 @@ export default function RatesScreen({ navigation }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Validar se são números válidos
       const cleanedRates = {
-        energy: rates.energy.replace(',', '.'),
-        water: rates.water.replace(',', '.'),
-        gas: rates.gas.replace(',', '.')
+        energy: rates.energy.toString().replace(',', '.'),
+        water: rates.water.toString().replace(',', '.'),
+        gas: rates.gas.toString().replace(',', '.')
       };
 
       if (isNaN(cleanedRates.energy) || isNaN(cleanedRates.water) || isNaN(cleanedRates.gas)) {
@@ -107,13 +125,18 @@ export default function RatesScreen({ navigation }) {
               <View style={styles.labelRow}>
                 <Zap size={20} color="#facc15" />
                 <Text style={styles.label}>Preço do kWh (Energia)</Text>
+                {consumos.energy > 0 && (
+                  <View style={styles.simBadge}>
+                    <Text style={styles.simBadgeText}>Simulação: R$ {(consumos.energy * parseFloat(rates.energy || 0)).toFixed(2)}/mês</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.inputWrapper}>
                 <Text style={styles.currencyPrefix}>R$</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
-                  value={rates.energy}
+                  value={rates.energy.toString()}
                   onChangeText={(val) => setRates({...rates, energy: val})}
                   placeholder="0.00"
                   placeholderTextColor="rgba(255,255,255,0.3)"
@@ -126,13 +149,18 @@ export default function RatesScreen({ navigation }) {
               <View style={styles.labelRow}>
                 <Droplet size={20} color="#60a5fa" />
                 <Text style={styles.label}>Preço do Litro (Água)</Text>
+                {consumos.water > 0 && (
+                  <View style={[styles.simBadge, { backgroundColor: 'rgba(96, 165, 250, 0.2)' }]}>
+                    <Text style={[styles.simBadgeText, { color: '#60a5fa' }]}>Simulação: R$ {(consumos.water * parseFloat(rates.water || 0)).toFixed(2)}/mês</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.inputWrapper}>
                 <Text style={styles.currencyPrefix}>R$</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
-                  value={rates.water}
+                  value={rates.water.toString()}
                   onChangeText={(val) => setRates({...rates, water: val})}
                   placeholder="0.00"
                   placeholderTextColor="rgba(255,255,255,0.3)"
@@ -146,13 +174,18 @@ export default function RatesScreen({ navigation }) {
               <View style={styles.labelRow}>
                 <Flame size={20} color="#4ade80" />
                 <Text style={styles.label}>Preço do Quilo (Gás)</Text>
+                {consumos.gas > 0 && (
+                  <View style={[styles.simBadge, { backgroundColor: 'rgba(74, 222, 128, 0.2)' }]}>
+                    <Text style={[styles.simBadgeText, { color: '#4ade80' }]}>Simulação: R$ {(consumos.gas * parseFloat(rates.gas || 0)).toFixed(2)}/mês</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.inputWrapper}>
                 <Text style={styles.currencyPrefix}>R$</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="numeric"
-                  value={rates.gas}
+                  value={rates.gas.toString()}
                   onChangeText={(val) => setRates({...rates, gas: val})}
                   placeholder="0.00"
                   placeholderTextColor="rgba(255,255,255,0.3)"
@@ -174,6 +207,13 @@ export default function RatesScreen({ navigation }) {
                 </>
               )}
             </TouchableOpacity>
+
+            <View style={styles.referenceSection}>
+              <Text style={styles.referenceTitle}>💡 Médias de Referência</Text>
+              <Text style={styles.referenceText}>• Energia (SP): ~ R$ 0,92 /kWh</Text>
+              <Text style={styles.referenceText}>• Água (SP): ~ R$ 0,01 /L</Text>
+              <Text style={styles.referenceText}>• Gás (GLP): ~ R$ 8,50 /kg</Text>
+            </View>
 
           </ScrollView>
         </KeyboardAvoidingView>
@@ -237,4 +277,16 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   saveBtnText: { color: '#1A2980', fontSize: 18, fontWeight: 'bold' },
+  simBadge: {
+    backgroundColor: 'rgba(250, 204, 21, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 10,
+    flexShrink: 1
+  },
+  simBadgeText: { color: '#facc15', fontSize: 10, fontWeight: 'bold' },
+  referenceSection: { marginTop: 20, padding: 15, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 15 },
+  referenceTitle: { color: '#fff', fontSize: 14, fontWeight: 'bold', marginBottom: 10 },
+  referenceText: { color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 5 }
 });

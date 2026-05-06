@@ -40,14 +40,34 @@ export default function RegisterConsumptionScreen({ route }) {
     dt_perioto: editItem ? editItem.dataRegistrada : new Date().toISOString()
   });
 
+  const [suggestion, setSuggestion] = useState(null);
+
   useEffect(() => {
     carregarTipos();
-    carregarHistoricoRecente();
+    carregarHistoricoCompleto();
 
     if (editItem) {
       setStep(2); // Vai direto para o valor/data
     }
   }, [editItem]);
+
+  useEffect(() => {
+    // Calcular sugestão baseada no histórico quando o tipo mudar
+    if (formData.tipo_id && recentHistory.length > 0) {
+      const consumosDoTipo = recentHistory.filter(c => {
+        const tipo = tiposDisponiveis.find(t => t.id === formData.tipo_id);
+        return c.tipoConsumo === tipo?.nome;
+      });
+
+      if (consumosDoTipo.length > 0) {
+        const soma = consumosDoTipo.reduce((acc, curr) => acc + curr.valor, 0);
+        const media = soma / consumosDoTipo.length;
+        setSuggestion(media.toFixed(2));
+      } else {
+        setSuggestion(null);
+      }
+    }
+  }, [formData.tipo_id, recentHistory, tiposDisponiveis]);
 
   useEffect(() => {
     // Vincular o tipo_id se estiver editando assim que os tipos carregarem
@@ -77,15 +97,14 @@ export default function RegisterConsumptionScreen({ route }) {
     }
   };
 
-  const carregarHistoricoRecente = async () => {
+  const carregarHistoricoCompleto = async () => {
     try {
       const token = await AsyncStorage.getItem('@jwt_token');
       const response = await api.get('/consumo/Listar_Consumos', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const lista = response.data.mensagem || [];
-      lista.sort((a, b) => new Date(b.dataRegistrada) - new Date(a.dataRegistrada));
-      setRecentHistory(lista.slice(0, 3)); // Pegar apenas os 3 últimos
+      setRecentHistory(lista); 
     } catch (error) {
       console.log('Erro ao carregar histórico recente:', error);
     }
@@ -293,6 +312,16 @@ export default function RegisterConsumptionScreen({ route }) {
               onChangeText={(text) => setFormData({...formData, valor: text})}
             />
           </View>
+          
+          {suggestion && (
+            <TouchableOpacity 
+              style={styles.suggestionChip} 
+              onPress={() => setFormData({...formData, valor: suggestion})}
+            >
+              <Activity size={14} color="#26D0CE" />
+              <Text style={styles.suggestionText}>Sugestão baseada na média: {suggestion}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.inputGroup}>
@@ -497,5 +526,8 @@ const styles = StyleSheet.create({
   ocrShortcutGradient: { flexDirection: 'row', alignItems: 'center', padding: 15 },
   ocrShortcutTextWrapper: { flex: 1, marginLeft: 15 },
   ocrShortcutTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  ocrShortcutSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11 }
+  ocrShortcutSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11 },
+  
+  suggestionChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(38, 208, 206, 0.1)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(38, 208, 206, 0.2)' },
+  suggestionText: { color: '#26D0CE', fontSize: 13, fontWeight: '600', marginLeft: 8 }
 });

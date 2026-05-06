@@ -12,6 +12,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -20,10 +21,31 @@ export default function LoginScreen({ navigation }) {
     Ubuntu_400Regular,
   });
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    verificarAutoLogin();
+  }, []);
 
-  const fazerLogin = async () => {
-    if (!email || !senha) {
+  const verificarAutoLogin = async () => {
+    try {
+      const savedCreds = await AsyncStorage.getItem('@saved_login');
+      if (savedCreds) {
+        const { email: savedEmail, senha: savedSenha } = JSON.parse(savedCreds);
+        setEmail(savedEmail);
+        setSenha(savedSenha);
+        setRememberMe(true);
+        // Tentar login automático
+        fazerLogin(savedEmail, savedSenha);
+      }
+    } catch (e) {
+      console.log('Erro no auto-login:', e);
+    }
+  };
+
+  const fazerLogin = async (overrideEmail, overrideSenha) => {
+    const finalEmail = overrideEmail || email;
+    const finalSenha = overrideSenha || senha;
+
+    if (!finalEmail || !finalSenha) {
       Alert.alert('Atenção', 'Por favor, preencha seu e-mail e senha.');
       return;
     }
@@ -31,15 +53,29 @@ export default function LoginScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      await authService.login(email, senha);
+      await authService.login(finalEmail, finalSenha);
+
+      // Salvar credenciais se Lembrar-me estiver ativo
+      if (rememberMe || overrideEmail) {
+        const creds = JSON.stringify({ email: finalEmail, senha: finalSenha });
+        await AsyncStorage.setItem('@saved_login', creds);
+      } else {
+        await AsyncStorage.removeItem('@saved_login');
+      }
 
       console.log('Login efetuado com sucesso!');
-      setEmail('');
-      setSenha('');
+      if (!overrideEmail) {
+        setEmail('');
+        setSenha('');
+      }
 
       navigation.navigate('Detalhes'); 
     } catch (error) {
       console.log('Erro no login:', error);
+      // Se for auto-login e der erro, limpa as credenciais salvas
+      if (overrideEmail) {
+        await AsyncStorage.removeItem('@saved_login');
+      }
 
       if (error.response) {
         if (error.response.status === 404) {
@@ -99,9 +135,19 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
+        <View style={styles.rememberContainer}>
+          <TouchableOpacity 
+            style={styles.checkbox} 
+            onPress={() => setRememberMe(!rememberMe)}
+          >
+            {rememberMe && <View style={styles.checkboxInner} />}
+          </TouchableOpacity>
+          <Text style={styles.rememberText}>Lembrar de mim</Text>
+        </View>
+
         <TouchableOpacity 
           style={styles.botao_redondo} 
-          onPress={fazerLogin}
+          onPress={() => fazerLogin()}
           disabled={isLoading} 
         >
           {isLoading ? (
@@ -257,4 +303,32 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     fontSize: 15,
   },
+  rememberContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    marginLeft: 5
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.5)',
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)'
+  },
+  checkboxInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
+    backgroundColor: '#fff'
+  },
+  rememberText: {
+    color: '#fff',
+    fontFamily: 'Ubuntu_400Regular',
+    fontSize: 14
+  }
 });

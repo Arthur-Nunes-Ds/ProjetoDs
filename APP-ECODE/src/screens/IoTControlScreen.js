@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -63,6 +63,27 @@ export default function IoTControlScreen({ navigation }) {
       color: '#26D0CE' 
     }
   ]);
+
+  useEffect(() => {
+    // Simulação de dados IoT em tempo real
+    const interval = setInterval(() => {
+      setDevices(prev => prev.map(dev => {
+        if (!dev.status) return dev;
+        
+        if (dev.type === 'plug') {
+          const newVal = 10 + Math.floor(Math.random() * 5);
+          return { ...dev, info: `Consumo: ${newVal}W` };
+        }
+        if (dev.type === 'water') {
+          const variations = ['Fluxo estável', 'Fluxo leve', 'Fluxo contínuo'];
+          return { ...dev, info: variations[Math.floor(Math.random() * variations.length)] };
+        }
+        return dev;
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const toggleDevice = (id) => {
     setDevices(prev => prev.map(dev => 
