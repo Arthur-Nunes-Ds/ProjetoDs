@@ -121,3 +121,7 @@ if not REDIS_PASSWORD or not REDIS_PASSWORD.strip():
     class RedisPassword(Exception): pass
     raise RedisPassword("O sitema precisa do REDIS_PASSWORD nas var de abiente/ .env")
 
+# SmartThings Credentials
+ST_CLIENT_ID = getenv("ST_CLIENT_ID", "echo-de-client-id")
+ST_CLIENT_SECRET = getenv("ST_CLIENT_SECRET", "echo-de-client-secret")
+
