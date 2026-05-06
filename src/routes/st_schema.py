@@ -94,7 +94,7 @@ async def st_token(request: Request):
 
 # --- Webhook Endpoint ---
 
-@Rotas_ST.post("/st/webhook", dependencies=[Depends(verify_smartthings_signature)])
+@Rotas_ST.post("/webhook", dependencies=[Depends(verify_smartthings_signature)])
 async def st_webhook(
     request: Request,
     session: Session = Depends(get_sesion)
