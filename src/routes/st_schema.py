@@ -16,13 +16,19 @@ Rotas_ST = APIRouter()
 
 @Rotas_ST.get("/auth/authorize", response_class=HTMLResponse)
 async def st_authorize(
-    client_id: str,
-    response_type: str,
-    redirect_uri: str,
-    state: Optional[str] = None,
-    scope: Optional[str] = None
+    request: Request,
+    client_id: Optional[str] = Query(None),
+    response_type: Optional[str] = Query("code"),
+    redirect_uri: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    scope: Optional[str] = Query(None)
 ):
     """Simple login page for SmartThings OAuth2."""
+    print(f"DEBUG ST OAUTH AUTHORIZE: client_id={client_id}, redirect_uri={redirect_uri}")
+    
+    if not client_id or not redirect_uri:
+        return HTMLResponse("<h1>Erro: Parâmetros client_id ou redirect_uri ausentes.</h1>", status_code=400)
+
     if client_id != ST_CLIENT_ID:
         return HTMLResponse(content="<h1>Invalid Client ID</h1>", status_code=400)
 

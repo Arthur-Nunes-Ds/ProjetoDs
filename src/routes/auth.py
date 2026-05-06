@@ -22,17 +22,25 @@ auth_codes = {}
 @Rotas_Auth.get("/authorize", response_class=HTMLResponse)
 async def authorize(
     request: Request,
-    client_id: str,
-    redirect_uri: str,
-    response_type: str = "code",
-    state: Optional[str] = None,
-    scope: Optional[str] = None
+    client_id: Optional[str] = Query(None),
+    redirect_uri: Optional[str] = Query(None),
+    response_type: Optional[str] = Query("code"),
+    state: Optional[str] = Query(None),
+    scope: Optional[str] = Query(None)
 ):
     """Exibe a página de login para autorização OAuth2."""
+    print(f"DEBUG OAUTH AUTHORIZE: client_id={client_id}, redirect_uri={redirect_uri}, state={state}")
+    
+    if not client_id or not redirect_uri:
+        return HTMLResponse(
+            "<html><body><h1>Erro de Configuração OAuth</h1><p>Parâmetros client_id ou redirect_uri ausentes na requisição.</p></body></html>", 
+            status_code=400
+        )
+
     return templates.TemplateResponse("login_oauth.html", {
         "request": request,
-        "client_id": client_id or "",
-        "redirect_uri": redirect_uri or "",
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
         "state": state or "",
         "response_type": response_type or "code",
         "scope": scope or ""
