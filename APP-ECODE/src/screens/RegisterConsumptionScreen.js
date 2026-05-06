@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History } from 'lucide-react-native';
+import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History, Sparkles } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'; 
 
@@ -169,7 +169,7 @@ export default function RegisterConsumptionScreen({ route }) {
 
       // 4. Sucesso!
       setStep(4); 
-      carregarHistoricoRecente();
+      carregarHistoricoCompleto();
     } catch (error) {
       console.log('Erro ao registrar consumo:', error);
       
@@ -317,9 +317,16 @@ export default function RegisterConsumptionScreen({ route }) {
             <TouchableOpacity 
               style={styles.suggestionChip} 
               onPress={() => setFormData({...formData, valor: suggestion})}
+              activeOpacity={0.7}
             >
-              <Activity size={14} color="#26D0CE" />
-              <Text style={styles.suggestionText}>Sugestão baseada na média: {suggestion}</Text>
+              <LinearGradient 
+                colors={['rgba(38, 208, 206, 0.15)', 'rgba(26, 41, 128, 0.05)']} 
+                style={styles.suggestionGradient}
+                start={{x: 0, y: 0}} end={{x: 1, y: 0}}
+              >
+                <Sparkles size={16} color="#26D0CE" />
+                <Text style={styles.suggestionText}>Sugestão Inteligente: {suggestion} {tipoRelativo?.unidade_medida}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           )}
         </View>
@@ -503,6 +510,7 @@ const styles = StyleSheet.create({
   viewFullHistory: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingTop: 8 },
   viewFullHistoryText: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginRight: 5 },
   
-  suggestionChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(38, 208, 206, 0.1)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(38, 208, 206, 0.2)' },
+  suggestionChip: { marginBottom: 15, borderRadius: 12, overflow: 'hidden' },
+  suggestionGradient: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 15 },
   suggestionText: { color: '#26D0CE', fontSize: 13, fontWeight: 'bold', marginLeft: 8 }
 });

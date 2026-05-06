@@ -429,9 +429,13 @@ export default function DetailsScreen({ navigation }) {
               </Text>
               <View style={styles.ecoScoreInfo}>
                 <Text style={styles.ecoScoreStatus}>
-                  {dados.ecoScore > 80 ? 'Herói do Planeta' : dados.ecoScore > 50 ? 'Em Evolução' : 'Alerta Ecológico'}
+                  {dados.ecoScore > 80 ? 'Herói do Planeta 🏆' : dados.ecoScore > 50 ? 'Em Evolução 📈' : 'Alerta Ecológico ⚠️'}
                 </Text>
-                <Text style={styles.ecoScoreSub}>Baseado no cumprimento de suas metas</Text>
+                <Text style={styles.ecoScoreSub}>
+                  {dados.ecoScore > 80 ? 'Excelente! Você está no topo da sustentabilidade.' : 
+                   dados.ecoScore > 50 ? 'Bom trabalho, mas ainda há espaço para economizar.' : 
+                   'Atenção: seu consumo está acima das metas ideais.'}
+                </Text>
               </View>
             </View>
             <View style={styles.ecoScoreBarBg}>
