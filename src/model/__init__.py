@@ -1,11 +1,11 @@
 from ..db import Base, engine
 from .usuario import Usuario
 from .tipo_consumo import TipoConsumo
-from .dica_sustentavel import DicaSustentavel
+from .iot import Iot
 from .meta import Meta
 from .consumo import Consumo
 
-__all__ = ["Usuario", "TipoConsumo", "DicaSustentavel",
+__all__ = ["Usuario", "TipoConsumo", "Iot",
            "Meta", "Consumo"]
 
 #criar todas as tabelas

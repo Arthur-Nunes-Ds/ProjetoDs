@@ -10,9 +10,9 @@ class Consumo(Base):
     _valor = Column(Float, nullable=False, name="valor")
     _data_registro = Column(DateTime, nullable=True,name="data_registro")
     _USUARIO_id = Column(Integer, ForeignKey('USUARIO.id', ondelete="CASCADE"), 
-                         nullable=False, name="USUARIO_id")
+                        nullable=False, name="USUARIO_id")
     _TIPO_CONSUMO_id = Column(Integer, ForeignKey('TIPO_CONSUMO.id', ondelete="CASCADE")
-                              , nullable=False, name="TIPO_CONSUMO_id")
+                              ,nullable=False, name="TIPO_CONSUMO_id")
         
     tipo_consumo = relationship(
         "TipoConsumo", 

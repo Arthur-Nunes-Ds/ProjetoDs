@@ -10,16 +10,16 @@ class DuplicationUser(HTTPException):
             detail='já existe um cliente com esse email'
         )
 
-class DuplicationTipo(HTTPException):
+class DuplicationIot(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
 
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail='já existe um tipo de consumo desse tipo'
+            detail='já existe um Iot com esse email'
         )
 
-class DuplicationDica(HTTPException):
+class DuplicationTipo(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
 
@@ -64,15 +64,6 @@ class NoteTipo(HTTPException):
             detail="Não há Tipo de Consumo cadastrado com esse id"
         )
 
-class NotDica(HTTPException):
-    def __init__(self, session: Session):
-        session.rollback()
-
-        super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Não há Dicas Cadastrada com esse id"
-        )
-
 class NotMeta(HTTPException):
     def __init__(self, session: Session):
         session.rollback()
@@ -80,6 +71,15 @@ class NotMeta(HTTPException):
         super().__init__(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Não há Meta cadastrada com esse id"
+        )
+
+class NotIot(HTTPException):
+    def __init__(self, session: Session):
+        session.rollback()
+
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não há Iot cadastrada com esse id"
         )
 
 class NotConsumo(HTTPException):

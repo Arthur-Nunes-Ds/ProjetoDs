@@ -51,12 +51,12 @@ async def enviar_email(email: str, session : Session, is_rest_senha: bool = Fals
         </head>\n
         <!-- Arquivo Html só Para deixar o email mas bonito e com toque de proficonalismo -->\n
         <body style="font-family: Arial, sans-serif; padding: 20px; \n
-            background: linear-gradient(118deg,rgba(125, 0, 251, 1) 17%,\n
-            rgba(0, 0, 0, 1) 89%); color: azure; width: 100%; height: 300px;">\n
+            background: #ffffff,\n
+            ; color: #3b82f6; width: 100%; height: 300px;">\n
             <h1>Olá, {query.nome} !</h1>\n
             <p>Aqui está o linck para {MSG["CONTEUDO_MSG"][is_rest_senha]}: </p>\n
             <div style="background-color: #ffffffa2; text-align: center; padding:1px ;border-radius: 5px;">\n
-                <h3 style="color: #4CAF50; font-size: 24px;">\n
+                <h3 style="color: #3b82f6; font-size: 24px;">\n
                     <a href="{url} ">click-me</a></h3>\n
             </div>\n
             <p>Esse email foi gerado altomaticamente. Não o responda.\n

@@ -6,6 +6,7 @@ from .tipo_consumo import Rotas_Tipo_Consumo
 from .dicas import Rotas_Dicas
 from .meta import Rotas_Meta
 from .consumo import Rotas_Consumo
+from .iot import Rotas_Iot
 from ..schemas import Reposne500
 
 manger_route = APIRouter(responses={
@@ -14,8 +15,6 @@ manger_route = APIRouter(responses={
          "model":Reposne500}
 })
 
-#include_in_schema => indica se a rota será exibida no /docs ou não.
-    #O padrão é que ela será exibida.
 @manger_route.get("/",include_in_schema=False)
 async def home_to_doc():
     #Toda vez que o usuário acessar essa rota, ele será redirecionado
@@ -56,4 +55,10 @@ manger_route.include_router(
     Rotas_Consumo,
     prefix="/consumo",
     tags=["Consumo"]
+)
+
+manger_route.include_router(
+    Rotas_Iot,
+    prefix="/iot",
+    tags=["Iot"]
 )

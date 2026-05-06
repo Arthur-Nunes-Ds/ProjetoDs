@@ -33,6 +33,13 @@ class Usuario(Base):
         passive_deletes=True
     )
 
+    iot = relationship(
+        "Iot", 
+        back_populates="usuario",
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
     def __init__(self, nome: str, email: str, senha: str, email_verificado : bool = False) -> None:
         self._nome = nome
         self._email = email

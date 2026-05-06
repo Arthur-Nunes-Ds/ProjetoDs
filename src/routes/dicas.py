@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..db import get_sesion
-from ..schemas import (BaseCriarDica, BaseEditarDica, BaseDicaRecomendada,ResponseOk, ResponseAllDica)
-from ..services import (criar_dica,editar_dica,excluir_dica,mostra_dica,
-                        verificar_jwt_admin,verificar_jwt_user, list_dica)
+from ..schemas import (BaseDicaRecomendada,ResponseOk)
+from ..services import (mostra_dica,verificar_jwt_user)
 
 Rotas_Dicas = APIRouter(
     responses={
@@ -15,46 +14,6 @@ Rotas_Dicas = APIRouter(
         },
     }
 )
-
-@Rotas_Dicas.post("/Criar_Dica", response_model=ResponseOk)
-async def Criar_Dica(
-    base: BaseCriarDica,
-    _: int = Depends(verificar_jwt_admin),
-    session: Session = Depends(get_sesion),
-):
-    """Cria uma dica sustentável."""
-
-    return criar_dica(session, base.nome, base.descricao, base.TIPO_CONSUMO_id)
-
-@Rotas_Dicas.put("/Editar_Dica/{id}", response_model=ResponseOk)
-async def Editar_Dica(
-    id: int,
-    base: BaseEditarDica,
-    _: int = Depends(verificar_jwt_admin),
-    session: Session = Depends(get_sesion),
-):
-    """Edita uma dica sustentável."""
-
-    return editar_dica(session, base.nome, base.descricao, base.TIPO_CONSUMO_id, id)
-
-@Rotas_Dicas.delete("/Del_Dica/{id}", response_model=ResponseOk)
-async def Del_Dica(
-    id: int,
-    _: int = Depends(verificar_jwt_admin),
-    session: Session = Depends(get_sesion),
-):
-    """Remove uma dica sustentável."""
-
-    return excluir_dica(session, id)
-
-@Rotas_Dicas.get("/Lista_Dica", response_model=ResponseAllDica)
-async def Lista_Dica(
-    id: int, _: int = Depends(verificar_jwt_admin),
-    session: Session = Depends(get_sesion),
-):
-    """Mostra todas as ticas."""
-
-    return list_dica(session,)
 
 @Rotas_Dicas.post("/Mostra_Dica", response_model=ResponseOk)
 async def Mostra_Dica(

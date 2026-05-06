@@ -27,6 +27,8 @@ services:
     image: redis:7
     container_name: redis_secure
     restart: always
+    expose:
+      - "6379"
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
@@ -35,6 +37,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  ia:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    expose:
+      - "11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   #nome("um dns interno") para o docker intentificar os serviços internos do docker
   backend_python:
@@ -54,8 +70,11 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      ia:
+        condition: service_healthy
 
 volumes:
   mysql_data:
   redis_data:
+  ollama_data:
 
