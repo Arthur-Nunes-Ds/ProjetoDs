@@ -12,40 +12,17 @@ import httpx
 
 Rotas_ST = APIRouter()
 
-# --- OAuth2 Endpoints ---
+# --- OAuth2 Endpoints (SmartThings Console redirects here) ---
 
-@Rotas_ST.get("/auth/authorize", response_class=HTMLResponse)
-async def st_authorize(
-    request: Request,
-    client_id: Optional[str] = Query(None),
-    response_type: Optional[str] = Query("code"),
-    redirect_uri: Optional[str] = Query(None),
-    state: Optional[str] = Query(None),
-    scope: Optional[str] = Query(None)
-):
-    """Redirects to the main OAuth authorize route to maintain a single source of truth."""
-    query_params = str(request.query_params)
-    target_url = f"/auth/authorize?{query_params}"
-    return RedirectResponse(url=target_url)
+@Rotas_ST.get("/auth/authorize", include_in_schema=False)
+async def st_authorize(request: Request):
+    """Redireciona para a rota principal de autorização."""
+    return RedirectResponse(url=f"/auth/authorize?{request.url.query}")
 
-@Rotas_ST.post("/auth/login")
-async def st_login_process(
-    user_id: int = Form(...),
-    redirect_uri: str = Form(...),
-    state: str = Form(...)
-):
-    """Processes login and redirects back to SmartThings with a code."""
-    # In a real app, verify password here. For now, we trust the ID.
-    code = f"code_{user_id}_{uuid.uuid4().hex[:8]}"
-    # Ideally store this code in DB/Redis with user_id. 
-    # For simulation, we'll just pass it.
-    separator = "&" if "?" in redirect_uri else "?"
-    return RedirectResponse(url=f"{redirect_uri}{separator}code={code}&state={state}", status_code=303)
-
-@Rotas_ST.post("/auth/token")
+@Rotas_ST.post("/auth/token", include_in_schema=False)
 async def st_token(request: Request):
-    """Redirects to the main token exchange route."""
-    return RedirectResponse(url="/auth/token", status_code=307) # 307 preserves the POST method and data
+    """Redireciona para a rota principal de troca de token."""
+    return RedirectResponse(url="/auth/token", status_code=307)
 
 # --- Webhook Endpoint ---
 
