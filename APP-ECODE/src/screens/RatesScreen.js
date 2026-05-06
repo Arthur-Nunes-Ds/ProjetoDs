@@ -5,13 +5,13 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   TextInput, 
-  SafeAreaView,
   ActivityIndicator,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Zap, Droplet, Flame, Save, ArrowLeft, Info } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';

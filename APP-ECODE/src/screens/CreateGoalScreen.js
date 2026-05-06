@@ -5,11 +5,12 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   TextInput, 
-  ScrollView, 
-  SafeAreaView,
-  ActivityIndicator,
-  Alert
+  ActivityIndicator, 
+  Alert,
+  ScrollView,
+  Modal
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Target, Zap, Droplet, Box, CheckCircle, Trash2, Calendar, Sparkles } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';

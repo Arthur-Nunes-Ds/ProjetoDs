@@ -5,11 +5,11 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   TextInput, 
-  SafeAreaView,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MailCheck, XCircle, CheckCircle2, KeyRound, ArrowLeft } from 'lucide-react-native';
 import api from '../services/api';

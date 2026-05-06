@@ -5,11 +5,11 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   TextInput, 
-  SafeAreaView,
-  ActivityIndicator,
+  ActivityIndicator, 
   Alert,
   ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, CheckCircle, ArrowLeft, Save, Eye, EyeOff } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';

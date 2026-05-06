@@ -4,11 +4,11 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView, 
   ActivityIndicator, 
   Alert,
   ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Mail, Shield, Trash2, LogOut, Settings, Zap } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -56,6 +56,7 @@ export default function AccountScreen({ navigation }) {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('@jwt_token');
+    await AsyncStorage.removeItem('@saved_login'); // Impede auto-login
     navigation.replace('Login');
   };
 
@@ -79,6 +80,7 @@ export default function AccountScreen({ navigation }) {
       });
 
       await AsyncStorage.removeItem('@jwt_token');
+      await AsyncStorage.removeItem('@saved_login'); // Limpa credenciais salvas
       Alert.alert('Conta Excluída', 'Sua conta foi removida com sucesso.');
       navigation.replace('Login');
     } catch (error) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Linking } from 'react-native';
 import { useFonts, Ubuntu_300Light, Ubuntu_400Regular } from '@expo-google-fonts/ubuntu';
 import { AntDesign } from '@expo/vector-icons';
-import { Users, Globe, TrendingUp, Droplet, Zap } from 'lucide-react-native';
+import { Droplet, Zap } from 'lucide-react-native';
 
 export default function HomeScreen({ navigation }) {
   let [fontsLoaded] = useFonts({
@@ -48,34 +48,11 @@ export default function HomeScreen({ navigation }) {
             <Text style={[styles.texto_botao,{color:'#fff'}]}>Ver recursos</Text>
         </TouchableOpacity>
 
-        {/* SEÇÃO IMPACTO DA COMUNIDADE */}
-        <View style={styles.communityContainer}>
-          <View style={styles.communityHeader}>
-            <Globe size={20} color="#26D0CE" />
-            <Text style={styles.communityTitle}>IMPACTO DA COMUNIDADE</Text>
-          </View>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Droplet size={24} color="#60a5fa" />
-              <Text style={styles.statValue}>1.2M L</Text>
-              <Text style={styles.statLabel}>Água Salva</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Zap size={24} color="#facc15" />
-              <Text style={styles.statValue}>85k kg</Text>
-              <Text style={styles.statLabel}>CO2 Reduzido</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Users size={24} color="#4ade80" />
-              <Text style={styles.statValue}>4.5k</Text>
-              <Text style={styles.statLabel}>Eco-Membros</Text>
-            </View>
-          </View>
-          <View style={styles.trendCard}>
-            <TrendingUp size={16} color="#4ade80" />
-            <Text style={styles.trendText}>Crescimento de 15% na economia este mês</Text>
-          </View>
-        </View>
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://2dsmoca.tech')}
+          style={[styles.botao_redondo, {backgroundColor:'#ffffff00'}]}>
+            <Text style={[styles.texto_botao,{color:'#fff'}]}>Ver recursos</Text>
+        </TouchableOpacity>
 
         <View style={styles.caixas_view}>
 
@@ -184,58 +161,4 @@ const styles = StyleSheet.create({
     color:'#fff',
     marginBottom:100, 
   },
-  communityContainer: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    margin: 20,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
-  },
-  communityHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20
-  },
-  communityTitle: {
-    color: '#26D0CE',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 10,
-    letterSpacing: 1
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 20
-  },
-  statItem: {
-    alignItems: 'center',
-    flex: 1
-  },
-  statValue: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 8
-  },
-  statLabel: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 10,
-    marginTop: 2
-  },
-  trendCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(74, 222, 128, 0.1)',
-    padding: 12,
-    borderRadius: 12,
-    justifyContent: 'center'
-  },
-  trendText: {
-    color: '#4ade80',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginLeft: 8
-  }
 });

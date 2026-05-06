@@ -6,14 +6,14 @@ import {
   TouchableOpacity, 
   TextInput, 
   ScrollView, 
-  SafeAreaView,
   ActivityIndicator,
   Alert,
   Platform
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History, Scan } from 'lucide-react-native';
+import { Zap, Droplet, Box, CheckCircle, Edit3, Calendar, ArrowLeft, ArrowRight, History } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native'; 
 
@@ -397,29 +397,10 @@ export default function RegisterConsumptionScreen({ route }) {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           
-            <View style={styles.header}>
-              <Text style={styles.title}>{isEditing ? 'Editar Registro' : 'Novo Registro'}</Text>
-              <Text style={styles.subtitle}>{isEditing ? 'ATUALIZAR DADOS' : 'GERENCIAMENTO DE RECURSOS'}</Text>
-            </View>
-
-            {!isEditing && (
-              <TouchableOpacity 
-                style={styles.ocrShortcut} 
-                onPress={() => navigation.navigate('OCRScanner')}
-              >
-                <LinearGradient 
-                  colors={['rgba(38, 208, 206, 0.2)', 'rgba(26, 41, 128, 0.2)']} 
-                  style={styles.ocrShortcutGradient}
-                >
-                  <Scan size={24} color="#26D0CE" />
-                  <View style={styles.ocrShortcutTextWrapper}>
-                    <Text style={styles.ocrShortcutTitle}>Registrar por Foto (IA)</Text>
-                    <Text style={styles.ocrShortcutSub}>Economize tempo usando nosso scanner</Text>
-                  </View>
-                  <AntDesign name="right" size={16} color="#26D0CE" />
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
+          <View style={styles.header}>
+            <Text style={styles.title}>{isEditing ? 'Editar Registro' : 'Novo Registro'}</Text>
+            <Text style={styles.subtitle}>{isEditing ? 'ATUALIZAR DADOS' : 'GERENCIAMENTO DE RECURSOS'}</Text>
+          </View>
 
           <View style={styles.card}>
             {step === 1 && renderStep1()}
@@ -521,13 +502,7 @@ const styles = StyleSheet.create({
   recentValue: { color: '#26D0CE', fontSize: 14, fontWeight: 'bold' },
   viewFullHistory: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingTop: 8 },
   viewFullHistoryText: { color: '#26D0CE', fontSize: 12, fontWeight: 'bold', marginRight: 5 },
-
-  ocrShortcut: { marginBottom: 20, borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(38, 208, 206, 0.3)' },
-  ocrShortcutGradient: { flexDirection: 'row', alignItems: 'center', padding: 15 },
-  ocrShortcutTextWrapper: { flex: 1, marginLeft: 15 },
-  ocrShortcutTitle: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  ocrShortcutSub: { color: 'rgba(255,255,255,0.5)', fontSize: 11 },
   
   suggestionChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(38, 208, 206, 0.1)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(38, 208, 206, 0.2)' },
-  suggestionText: { color: '#26D0CE', fontSize: 13, fontWeight: '600', marginLeft: 8 }
+  suggestionText: { color: '#26D0CE', fontSize: 13, fontWeight: 'bold', marginLeft: 8 }
 });

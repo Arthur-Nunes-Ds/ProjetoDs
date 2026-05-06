@@ -4,12 +4,10 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  FlatList, 
-  SafeAreaView,
-  ActivityIndicator,
-  Alert,
-  RefreshControl
+  ActivityIndicator, 
+  Alert 
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Trash2, Calendar, Zap, Droplet, Flame, ArrowLeft, Filter, Edit3, CheckCircle, Activity, FileText } from 'lucide-react-native';
 import { AntDesign } from '@expo/vector-icons';

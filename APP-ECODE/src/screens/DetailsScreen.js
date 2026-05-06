@@ -7,10 +7,10 @@ import {
   Dimensions, 
   TouchableOpacity, 
   Modal, 
-  SafeAreaView,
   ActivityIndicator,
   Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BarChart, LineChart, PieChart } from 'react-native-chart-kit';
 import { Menu, X, Plus, Settings, HelpCircle, Activity, User, LogOut, DollarSign, Zap, Droplet, Box, Flame, History, Cpu, Sparkles, Users } from 'lucide-react-native';
@@ -284,6 +284,7 @@ export default function DetailsScreen({ navigation }) {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('@jwt_token');
+    await AsyncStorage.removeItem('@saved_login'); // Impede auto-login
     navigation.replace('Login');
   };
 
