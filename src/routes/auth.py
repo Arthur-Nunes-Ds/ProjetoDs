@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
-from ..db import get_sesion
+import time
+import json
+import uuid
+import os
+from ..db import get_sesion, redis_conection
 from ..model import Usuario
 from ..services.jwt import criar_token
 from ..services.erros import NoteUserSenha
-import uuid
-import os
-import time
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 
@@ -17,7 +18,7 @@ Rotas_Auth = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates"))
 
 # Armazenamento temporário de códigos (em produção, use Redis)
-auth_codes = {}
+# auth_codes = {} # Removido conforme BUG 3
 
 @Rotas_Auth.get("/authorize", response_class=HTMLResponse)
 async def authorize(
@@ -73,7 +74,10 @@ async def login_process(
 ):
     """Processa o login e redireciona de volta com o código de autorização."""
     # Buscar usuário pelo email
-    user = session.query(Usuario).filter(Usuario._email == email).first()
+    user = session.query(Usuario).filter(
+        Usuario._email == email,
+        Usuario._email_verificado == True
+    ).first()
     
     if not user or not user.verificarSenha(password):
         # Retorna para a página de login com erro
@@ -89,11 +93,12 @@ async def login_process(
 
     # Gerar código de autorização
     code = str(uuid.uuid4())
-    auth_codes[code] = {
-        "user_id": user.id,
-        "client_id": client_id,
-        "expires_at": time.time() + 600 # 10 minutos
-    }
+    # Redis para persistência (BUG 3)
+    redis_conection.setex(
+        f"oauth_code:{code}", 
+        600, 
+        json.dumps({"user_id": user.id, "client_id": client_id})
+    )
 
     # Redirecionar de volta para o app
     separator = "&" if "?" in redirect_uri else "?"
@@ -116,14 +121,12 @@ async def token_exchange(
     if grant_type != "authorization_code":
         return JSONResponse(status_code=400, content={"error": "unsupported_grant_type"})
 
-    # Validar o código
-    auth_info = auth_codes.get(code)
-    if not auth_info:
+    # Validar o código (BUG 3)
+    auth_info_raw = redis_conection.get(f"oauth_code:{code}")
+    if not auth_info_raw:
         return JSONResponse(status_code=400, content={"error": "invalid_grant"})
 
-    if time.time() > auth_info["expires_at"]:
-        del auth_codes[code]
-        return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Code expired"})
+    auth_info = json.loads(auth_info_raw)
 
     # Em um fluxo real, validaríamos o client_id e client_secret aqui
     # Para o app do Guilherme, permitiremos se o code for válido
@@ -133,8 +136,8 @@ async def token_exchange(
     # Gerar o JWT final
     access_token = criar_token(user_id)
     
-    # Remover o código usado
-    del auth_codes[code]
+    # Remover o código usado (BUG 3)
+    redis_conection.delete(f"oauth_code:{code}")
 
     return {
         "access_token": access_token,

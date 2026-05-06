@@ -81,13 +81,13 @@ async def enviar_email(email: str, session : Session, is_rest_senha: bool = Fals
     except(NoteUserSenha): raise
 
     except smtplib.SMTPAuthenticationError:
-        raise AutStmpServer(session, erro) # type: ignore
+        raise AutStmpServer(session)
 
     except (smtplib.SMTPServerDisconnected,smtplib.SMTPConnectError):
-        raise StmpIndisponivel(session, erro) # type: ignore
+        raise StmpIndisponivel(session)
     
     except Exception as erro:
-        raise ErroInesperado(session, erro) # type: ignore
+        raise ErroInesperado(erro, session) # type: ignore
 
 def verificar_email(token: str, session: Session) -> dict:
     try:

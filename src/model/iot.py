@@ -16,15 +16,17 @@ class Iot(Base):
     )
 
     def __init__(self, id_iot: int, id_user: int):
-        self._id = id_user
         self._id_iot = id_iot
+        self._USUARIO_id = id_user
 
     @property
     def id(self) -> int: return int(self._id) # type: ignore
 
     @property
     def usario_id(self) -> int: return int(self._USUARIO_id) # type: ignore 
-    def usario_id(self, id_user) -> None: self._USUARIO_id = id_user
+
+    @usario_id.setter
+    def usario_id(self, id_user: int) -> None: self._USUARIO_id = id_user
 
     @property
     def id_iot(self) -> int: return int(self._id_iot) # type: ignore

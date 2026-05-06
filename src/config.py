@@ -37,8 +37,8 @@ if ALG == None:
     ALG = 'HS256'
 
 try:
-    EXPIRATION_TIMER_JWT = int(getenv('EXPIRATION_TIMER_JWT'))# type: ignore
-except ValueError:
+    EXPIRATION_TIMER_JWT = int(getenv('EXPIRATION_TIMER_JWT', '5'))# type: ignore
+except (ValueError, TypeError):
     print('erro na hora de carrega o tempo de exepiração do jwt o padrão dela vai ser 5 minutos')
     EXPIRATION_TIMER_JWT = 5
 
@@ -64,11 +64,11 @@ def tipo_de_timer(escolha: str):
             raise ValueError("Você não passou o tipo do jwt")
 
 EXPIRATION_TIMER_JWT_TIPO = getenv("EXPIRATION_TIMER_JWT_TIPO")
-if EXPIRATION_TIMER_JWT_TIPO == None:
+if EXPIRATION_TIMER_JWT_TIPO is None:
     print("erro na hora de pega o tipode duração o padrão sera MM(minutos)")
     EXPIRATION_TIMER_JWT_TIPO = "MM"
-else:
-    timer = tipo_de_timer(EXPIRATION_TIMER_JWT_TIPO)
+
+timer = tipo_de_timer(EXPIRATION_TIMER_JWT_TIPO)
 
 #!SECTION
 

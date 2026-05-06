@@ -45,7 +45,10 @@ def editar_iot(session: Session, id_iot: int | None, id_user: int | None) -> dic
 
 def del_iot(session: Session, id_iot: int, id_user: int) -> dict:
     try:
-        query = session.query(Iot).filter_by(_id_iot=id_iot, _USUARIO_id=id_user).delete()
+        query = session.query(Iot).filter(
+            Iot._id_iot == id_iot,
+            Iot._USUARIO_id == id_user
+        ).delete()
 
         if query:
             session.commit()
