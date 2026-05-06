@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import os
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from .config import ALLOW_ORIGINS
 from .routes import manger_route as mr
 from .services import erros, admin_create
@@ -28,8 +29,6 @@ async def lifespan(app: FastAPI):
         session.close()
     
     yield
-
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 
 # info da api
 app = FastAPI(
