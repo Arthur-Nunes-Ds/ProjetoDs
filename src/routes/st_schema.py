@@ -8,6 +8,7 @@ from ..services.st_security import verify_smartthings_signature
 from ..services import st_service
 from typing import Optional
 import uuid
+import httpx
 
 Rotas_ST = APIRouter()
 
@@ -104,6 +105,17 @@ async def st_webhook(request: Request):
         headers = payload.get("headers", {})
         interaction_type = headers.get("interactionType") or payload.get("interactionType")
         
+        # --- NOVO: AUTOMAÇÃO DE CONFIRMAÇÃO DE LIFECYCLE ---
+        lifecycle = payload.get("lifecycle")
+        if lifecycle == "CONFIRMATION":
+            confirmation_url = payload.get("confirmationData", {}).get("confirmationUrl")
+            if confirmation_url:
+                print(f"AUTOMATIC CONFIRMATION: {confirmation_url}")
+                async with httpx.AsyncClient() as client:
+                    await client.get(confirmation_url)
+                return {"targetUrl": confirmation_url}
+        # --------------------------------------------------
+
         # 1. RESPOSTA DE VERIFICAÇÃO (O que faz o console dar "Verified")
         if interaction_type == "interactionResult":
             return {
