@@ -26,3 +26,4 @@ typing_extensions==4.15.0
 uvicorn==0.40.0
 redis==7.4.0
 httpx
+jinja2==3.1.4
