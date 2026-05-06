@@ -94,13 +94,15 @@ async def st_token(request: Request):
 
 # --- Webhook Endpoint ---
 
-@Rotas_ST.post("/webhook", dependencies=[Depends(verify_smartthings_signature)])
+@Rotas_ST.post("/webhook")
 async def st_webhook(
     request: Request,
     session: Session = Depends(get_sesion)
 ):
     """Main Webhook for SmartThings interactions."""
     payload = await request.json()
+    print(f"DEBUG ST PAYLOAD: {payload}")
+    
     headers = payload.get("headers", {})
     
     # Busca o interactionType no header (padrão Schema) ou na raiz (fallback)
