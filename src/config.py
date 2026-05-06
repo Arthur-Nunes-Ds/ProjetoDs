@@ -86,9 +86,9 @@ if not RESETAR_SENHA or not RESETAR_SENHA.strip():
     raise RestarEmail("O sitema precisa do RESETAR_SENHA nas var de abiente/ .env")
 
 
-ALLOW_ORIGINS = getenv('ALLOW_ORIGINS', ['*'])
-if ALLOW_ORIGINS is str:
-    ALLOW_ORIGINS = list(ALLOW_ORIGINS.split(","))
+ALLOW_ORIGINS = getenv('ALLOW_ORIGINS', 'http://192.168.0.36:8081,https://2dsmoca.tech,http://localhost:8081,exp://192.168.0.36:8081')
+if isinstance(ALLOW_ORIGINS, str):
+    ALLOW_ORIGINS = [origin.strip() for origin in ALLOW_ORIGINS.split(",")]
 
 #!SECTION
 

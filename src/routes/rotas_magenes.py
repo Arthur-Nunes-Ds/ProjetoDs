@@ -8,6 +8,7 @@ from .meta import Rotas_Meta
 from .consumo import Rotas_Consumo
 from .iot import Rotas_Iot
 from .st_schema import Rotas_ST
+from .auth import Rotas_Auth
 from ..schemas import Reposne500
 
 manger_route = APIRouter(responses={
@@ -68,4 +69,10 @@ manger_route.include_router(
     Rotas_ST,
     prefix="/st",
     tags=["SmartThings"]
+)
+
+manger_route.include_router(
+    Rotas_Auth,
+    prefix="/auth",
+    tags=["Auth"]
 )

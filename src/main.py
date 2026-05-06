@@ -1,10 +1,16 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+import os
 from .config import ALLOW_ORIGINS
 from .routes import manger_route as mr
 from .services import erros, admin_create
 from .db import get_sesion
+
+# Configuração de templates
+templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "templates"))
 
 async def lifespan(app: FastAPI):
     try:
