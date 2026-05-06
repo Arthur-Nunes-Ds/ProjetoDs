@@ -17,12 +17,7 @@ class TipoConsumo(Base):
         passive_deletes=True
     )
 
-    dica_sustentavel = relationship(
-        "DicaSustentavel", 
-        back_populates="tipo_consumo",
-        cascade="all, delete",
-        passive_deletes=True
-    )
+    
 
     consumo = relationship(
         "Consumo", 
