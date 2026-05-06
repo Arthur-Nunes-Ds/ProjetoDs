@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import os
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from .config import ALLOW_ORIGINS
 from .routes import manger_route as mr
 from .services import erros, admin_create
@@ -30,7 +29,7 @@ async def lifespan(app: FastAPI):
     
     yield
 
-# info da api
+#info da api
 app = FastAPI(
     lifespan=lifespan,  # type: ignore
     title='Api do Aplicativo de Monitoramento de Consumo Sustentável da EchoDE Ecologic Tech',
@@ -84,20 +83,17 @@ app = FastAPI(
     ]
 )
 
-# Configuração de Proxy para ler X-Forwarded-Proto
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
-
-# Configuração de CORS (Cross-Origin Resource Sharing) -> isso permite que o backend
-# se comunique com o frontend, mesmo que estejam em domínios diferentes.
+#Configuração de CORS (Cross-Origin Resource Sharing) -> isso permite que o backend
+    #se comunique com o frontend, mesmo que estejam em domínios diferentes.
 app.add_middleware(
     CORSMiddleware,
-    # quem pode fazer requisições para o bac
+    #quem pode fazer requisições para o bac
     allow_origins=ALLOW_ORIGINS,
-    # permite que o navegado envie credenciais(cookies, jwt) junto da requisição
+    #permite que o navegado envie credenciais(cookies, jwt) junto da requisição
     allow_credentials=True,
-    # permite os metedos como get, post, etc.
+    #permite os metedos como get, post, etc.
     allow_methods=["*"], 
-    # permite todos os tipos de cabeçalhos numa requisição.
+    #permite todos os tipos de cabeçalhos numa requisição.
     allow_headers=["*"],
 )
 

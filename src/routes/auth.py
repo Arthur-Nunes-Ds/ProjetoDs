@@ -22,24 +22,40 @@ auth_codes = {}
 @Rotas_Auth.get("/authorize", response_class=HTMLResponse)
 async def authorize(
     request: Request,
-    client_id: str = Query(...),
-    redirect_uri: str = Query(...),
-    response_type: str = Query("code"),
+    client_id: Optional[str] = Query(None),
+    redirect_uri: Optional[str] = Query(None),
+    response_type: Optional[str] = Query("code"),
     state: Optional[str] = Query(None),
     scope: Optional[str] = Query(None)
 ):
     """Exibe a página de login para autorização OAuth2."""
     print("="*50)
     print(f"DEBUG OAUTH AUTHORIZE REQUEST RECEIVED")
-    print(f"Query Params: client_id={client_id}, redirect_uri={redirect_uri}, state={state}")
+    print(f"Method: {request.method}")
+    print(f"URL: {request.url}")
+    print(f"Headers: {request.headers}")
+    print(f"Query Params: client_id={client_id}, redirect_uri={redirect_uri}, state={state}, response_type={response_type}")
     print("="*50)
     
+    if not client_id or not redirect_uri:
+        print("WARNING: client_id or redirect_uri missing. Rendering for testing purposes.")
+        # We can still render the page for testing, but it won't be a valid OAuth request
+        return templates.TemplateResponse("login_oauth.html", {
+            "request": request,
+            "client_id": client_id or "TEST_CLIENT",
+            "redirect_uri": redirect_uri or "https://c2c-us.smartthings.com/login/callback",
+            "state": state or "TEST_STATE",
+            "response_type": response_type or "code",
+            "scope": scope or "",
+            "error": "AVISO: Parâmetros OAuth ausentes. Esta página está em modo de teste."
+        })
+
     return templates.TemplateResponse("login_oauth.html", {
         "request": request,
         "client_id": client_id,
         "redirect_uri": redirect_uri,
         "state": state or "",
-        "response_type": response_type,
+        "response_type": response_type or "code",
         "scope": scope or ""
     })
 
@@ -63,15 +79,15 @@ async def login_process(
         # Retorna para a página de login com erro
         return templates.TemplateResponse("login_oauth.html", {
             "request": request,
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
+            "client_id": client_id or "",
+            "redirect_uri": redirect_uri or "",
             "state": state or "",
-            "response_type": response_type,
+            "response_type": response_type or "code",
             "scope": scope or "",
             "error": "E-mail ou senha incorretos."
         })
 
-    # Gerar código de autorização (UUID)
+    # Gerar código de autorização
     code = str(uuid.uuid4())
     auth_codes[code] = {
         "user_id": user.id,
@@ -79,7 +95,7 @@ async def login_process(
         "expires_at": time.time() + 600 # 10 minutos
     }
 
-    # Redirecionar para: {redirect_uri}?code={code}&state={state}
+    # Redirecionar de volta para o app
     separator = "&" if "?" in redirect_uri else "?"
     redirect_url = f"{redirect_uri}{separator}code={code}"
     if state:
@@ -91,46 +107,39 @@ async def login_process(
 @Rotas_Auth.post("/token")
 async def token_exchange(
     grant_type: str = Form(...),
-    code: str = Form(None),
-    client_id: str = Form(None),
+    code: str = Form(...),
+    client_id: str = Form(...),
     client_secret: Optional[str] = Form(None),
-    refresh_token: Optional[str] = Form(None)
+    redirect_uri: Optional[str] = Form(None)
 ):
     """Troca o código de autorização pelo access_token final."""
-    
-    if grant_type == "authorization_code":
-        if not code:
-            return JSONResponse(status_code=400, content={"error": "invalid_request", "error_description": "code is missing"})
-            
-        # Validar o código
-        auth_info = auth_codes.get(code)
-        if not auth_info:
-            return JSONResponse(status_code=400, content={"error": "invalid_grant"})
-
-        if time.time() > auth_info["expires_at"]:
-            del auth_codes[code]
-            return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Code expired"})
-
-        user_id = auth_info["user_id"]
-        # Remover o código usado
-        del auth_codes[code]
-        
-    elif grant_type == "refresh_token":
-        if not refresh_token:
-            return JSONResponse(status_code=400, content={"error": "invalid_request", "error_description": "refresh_token is missing"})
-        # Em um fluxo real, validaríamos o refresh_token no DB. 
-        # Aqui, como é um MVP, vamos gerar um novo token (assumindo user_id 1 se não houver contexto)
-        user_id = 1 
-    else:
+    if grant_type != "authorization_code":
         return JSONResponse(status_code=400, content={"error": "unsupported_grant_type"})
 
+    # Validar o código
+    auth_info = auth_codes.get(code)
+    if not auth_info:
+        return JSONResponse(status_code=400, content={"error": "invalid_grant"})
+
+    if time.time() > auth_info["expires_at"]:
+        del auth_codes[code]
+        return JSONResponse(status_code=400, content={"error": "invalid_grant", "error_description": "Code expired"})
+
+    # Em um fluxo real, validaríamos o client_id e client_secret aqui
+    # Para o app do Guilherme, permitiremos se o code for válido
+    
+    user_id = auth_info["user_id"]
+    
     # Gerar o JWT final
     access_token = criar_token(user_id)
     
-    # Formato solicitado pelo usuário
+    # Remover o código usado
+    del auth_codes[code]
+
     return {
         "access_token": access_token,
-        "refresh_token": str(uuid.uuid4()),
+        "token_type": "bearer",
         "expires_in": 3600,
-        "token_type": "Bearer"
+        "refresh_token": str(uuid.uuid4()), # SmartThings usually requires this
+        "user_id": user_id
     }
