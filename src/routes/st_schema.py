@@ -23,37 +23,10 @@ async def st_authorize(
     state: Optional[str] = Query(None),
     scope: Optional[str] = Query(None)
 ):
-    """Simple login page for SmartThings OAuth2."""
-    print(f"DEBUG ST OAUTH AUTHORIZE: client_id={client_id}, redirect_uri={redirect_uri}")
-    
-    if not client_id or not redirect_uri:
-        return HTMLResponse("<h1>Erro: Parâmetros client_id ou redirect_uri ausentes.</h1>", status_code=400)
-
-    if client_id != ST_CLIENT_ID:
-        return HTMLResponse(content="<h1>Invalid Client ID</h1>", status_code=400)
-
-    html_content = f"""
-    <html>
-        <head><title>EchoDE - SmartThings Login</title></head>
-        <body style="font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f2f5;">
-            <div style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px;">
-                <h2 style="color: #1a73e8; margin-bottom: 1.5rem;">EchoDE Login</h2>
-                <form action="/st/auth/login" method="post">
-                    <input type="hidden" name="redirect_uri" value="{redirect_uri}">
-                    <input type="hidden" name="state" value="{state or ""}">
-                    <div style="margin-bottom: 1rem;">
-                        <label>User ID:</label><br/>
-                        <input type="text" name="user_id" style="width: 100%; padding: 0.5rem; margin-top: 0.25rem;" required>
-                    </div>
-                    <button type="submit" style="width: 100%; padding: 0.75rem; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Authorize SmartThings
-                    </button>
-                </form>
-            </div>
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+    """Redirects to the main OAuth authorize route to maintain a single source of truth."""
+    query_params = str(request.query_params)
+    target_url = f"/auth/authorize?{query_params}"
+    return RedirectResponse(url=target_url)
 
 @Rotas_ST.post("/auth/login")
 async def st_login_process(
@@ -71,33 +44,8 @@ async def st_login_process(
 
 @Rotas_ST.post("/auth/token")
 async def st_token(request: Request):
-    """Exchanges code for access token."""
-    form_data = await request.form()
-    grant_type = form_data.get("grant_type")
-    client_id = form_data.get("client_id")
-    client_secret = form_data.get("client_secret")
-
-    # Validate client credentials
-    if client_id != ST_CLIENT_ID or client_secret != ST_CLIENT_SECRET:
-        return JSONResponse(status_code=401, content={"error": "invalid_client"})
-    
-    if grant_type == "authorization_code":
-        code = form_data.get("code")
-        # Extract user_id from our simulated code format "code_{user_id}_{hex}"
-        try:
-            user_id = int(code.split("_")[1])
-        except Exception:
-            return JSONResponse(status_code=400, content={"error": "invalid_grant"})
-            
-        access_token = criar_token(user_id)
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "expires_in": 3600,
-            "refresh_token": f"refresh_{user_id}_{uuid.uuid4().hex[:8]}"
-        }
-    
-    return JSONResponse(status_code=400, content={"error": "unsupported_grant_type"})
+    """Redirects to the main token exchange route."""
+    return RedirectResponse(url="/auth/token", status_code=307) # 307 preserves the POST method and data
 
 # --- Webhook Endpoint ---
 

@@ -101,6 +101,7 @@ async def login_process(
     if state:
         redirect_url += f"&state={state}"
         
+    print(f"DEBUG OAUTH REDIRECT: Redirecting to {redirect_url}")
     return RedirectResponse(url=redirect_url, status_code=303)
 
 @Rotas_Auth.post("/token")
@@ -138,6 +139,7 @@ async def token_exchange(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "expires_in": 3600, # Ou o tempo configurado no config.py
+        "expires_in": 3600,
+        "refresh_token": str(uuid.uuid4()), # SmartThings usually requires this
         "user_id": user_id
     }
