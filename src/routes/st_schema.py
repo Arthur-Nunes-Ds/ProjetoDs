@@ -96,7 +96,7 @@ async def st_token(request: Request):
 
 @Rotas_ST.post("/webhook")
 async def st_webhook(request: Request):
-    """Main Webhook for SmartThings interactions - Open for Validation."""
+    """Main Webhook for SmartThings interactions - Header Echo Version."""
     try:
         payload = await request.json()
         print(f"DEBUG ST PAYLOAD: {payload}")
@@ -104,24 +104,50 @@ async def st_webhook(request: Request):
         headers = payload.get("headers", {})
         interaction_type = headers.get("interactionType") or payload.get("interactionType")
         
-        # 1. Resposta para resultados de interação (Site da Samsung)
+        # 1. RESPOSTA DE VERIFICAÇÃO (O que faz o console dar "Verified")
         if interaction_type == "interactionResult":
-            return {}
-            
-        # 2. Desafio de Confirmação (Lifecycle)
-        if interaction_type == "confirmation":
-            return {"targetUrl": "https://api.2dsmoca.tech/st/webhook"}
-            
-        # 3. Descoberta de Dispositivos (Para o app aparecer)
-        if interaction_type == "discoveryRequest":
             return {
                 "headers": headers,
-                "payload": { "devices": [] }
+                "payload": {}
             }
             
-        # Fallback para qualquer outra interação durante testes
-        return {}
+        # 2. DESAFIO DE CONFIRMAÇÃO (Lifecycle)
+        if interaction_type == "confirmation":
+            return {
+                "targetUrl": "https://api.2dsmoca.tech/st/webhook"
+            }
+            
+        # 3. RESPOSTA DE DESCOBERTA (O que faz aparecer no celular)
+        if interaction_type == "discoveryRequest":
+            response_headers = headers.copy()
+            response_headers["interactionType"] = "discoveryResponse"
+            
+            return {
+                "headers": response_headers,
+                "devices": [
+                    {
+                        "externalDeviceId": "sensor-echo-001",
+                        "friendlyName": "Medidor EchoDE",
+                        "deviceHandlerType": "SmartPlug",
+                        "deviceTypeName": "SmartPlug",
+                        "manufacturerInfo": {
+                            "manufacturerName": "EchoDE",
+                            "modelName": "EcoMonitor-V1",
+                            "hwVersion": "1.0",
+                            "swVersion": "1.0"
+                        },
+                        "capabilities": [
+                            {"capability": "st.powerMeter", "version": 1},
+                            {"capability": "st.energyMeter", "version": 1},
+                            {"capability": "st.switch", "version": 1}
+                        ],
+                        "categories": [{"category": "SmartPlug"}]
+                    }
+                ]
+            }
+        
+        return {"headers": headers, "payload": {}}
         
     except Exception as e:
         print(f"ERRO WEBHOOK: {e}")
-        return JSONResponse(status_code=200, content={})
+        return JSONResponse(status_code=200, content={"headers": headers, "payload": {}})
