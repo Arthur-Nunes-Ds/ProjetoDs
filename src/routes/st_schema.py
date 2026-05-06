@@ -54,12 +54,16 @@ async def st_webhook(request: Request):
     """Main Webhook for SmartThings interactions - Header Echo Version."""
     try:
         payload = await request.json()
-        print(f"DEBUG ST PAYLOAD: {payload}")
+        auth_header = request.headers.get("Authorization")
+        
+        print(f"--- WEBHOOK INCOMING ---")
+        print(f"AUTH: {auth_header}")
+        print(f"PAYLOAD: {payload}")
         
         headers = payload.get("headers", {})
         interaction_type = headers.get("interactionType") or payload.get("interactionType")
         
-        # --- NOVO: AUTOMAÇÃO DE CONFIRMAÇÃO DE LIFECYCLE ---
+        # --- CONFIRMAÇÃO DE LIFECYCLE ---
         lifecycle = payload.get("lifecycle")
         if lifecycle == "CONFIRMATION":
             confirmation_url = payload.get("confirmationData", {}).get("confirmationUrl")
@@ -68,60 +72,57 @@ async def st_webhook(request: Request):
                 async with httpx.AsyncClient() as client:
                     await client.get(confirmation_url)
                 return {"targetUrl": confirmation_url}
-        # --------------------------------------------------
 
-        # 1. RESPOSTA DE VERIFICAÇÃO (O que faz o console dar "Verified")
+        # 1. RESPOSTA DE VERIFICAÇÃO
         if interaction_type == "interactionResult":
             return {
                 "headers": headers,
                 "payload": {}
             }
             
-        # 2. DESAFIO DE CONFIRMAÇÃO (Lifecycle)
+        # 2. DESAFIO DE CONFIRMAÇÃO
         if interaction_type == "confirmation":
             return {
                 "targetUrl": "https://api.2dsmoca.tech/st/webhook"
             }
             
-        # 3. RESPOSTA DE DESCOBERTA (O que faz aparecer no celular)
+        # 3. RESPOSTA DE DESCOBERTA (Exact format requested by user)
         if interaction_type == "discoveryRequest":
             response_headers = headers.copy()
             response_headers["interactionType"] = "discoveryResponse"
             
-            return {
+            response = {
                 "headers": response_headers,
                 "devices": [
                     {
-                        "externalDeviceId": "sensor-echode-001",
-                        "friendlyName": "Consumo EchoDE",
+                        "externalDeviceId": "echode-001",
+                        "friendlyName": "Echode Medidor Principal",
                         "deviceHandlerType": "c2c-energy-meter",
-                        "deviceTypeName": "SmartPlug",
-                        "manufacturerInfo": {
-                            "manufacturerName": "EchoDE",
-                            "modelName": "EcoMonitor-V1",
-                            "hwVersion": "1.0",
-                            "swVersion": "1.0"
-                        },
-                        "capabilities": [
-                            {"capability": "st.energyMeter", "version": 1},
-                            {"capability": "st.powerMeter", "version": 1},
-                            {"capability": "st.refresh", "version": 1}
-                        ],
-                        "categories": [{"category": "SmartPlug"}]
+                        "capabilities": ["energyMeter", "powerMeter", "refresh"],
+                        "categories": ["SmartPlug"]
+                    },
+                    {
+                        "externalDeviceId": "echode-002",
+                        "friendlyName": "Echode Medidor Secundário",
+                        "deviceHandlerType": "c2c-energy-meter",
+                        "capabilities": ["energyMeter", "powerMeter", "refresh"],
+                        "categories": ["SmartPlug"]
                     }
                 ]
             }
+            print(f"DEBUG DISCOVERY RESPONSE: {response}")
+            return response
 
-        # 4. RESPOSTA DE ESTADO (Para os gráficos e valores aparecerem)
+        # 4. RESPOSTA DE ESTADO
         if interaction_type == "stateRefreshRequest":
             response_headers = headers.copy()
             response_headers["interactionType"] = "stateRefreshResponse"
             
-            return {
+            response = {
                 "headers": response_headers,
                 "deviceState": [
                     {
-                        "externalDeviceId": "sensor-echode-001",
+                        "externalDeviceId": "echode-001",
                         "states": [
                             {
                                 "component": "main",
@@ -138,9 +139,30 @@ async def st_webhook(request: Request):
                                 "unit": "W"
                             }
                         ]
+                    },
+                    {
+                        "externalDeviceId": "echode-002",
+                        "states": [
+                            {
+                                "component": "main",
+                                "capability": "st.energyMeter",
+                                "attribute": "energy",
+                                "value": 85.2,
+                                "unit": "kWh"
+                            },
+                            {
+                                "component": "main",
+                                "capability": "st.powerMeter",
+                                "attribute": "power",
+                                "value": 20.1,
+                                "unit": "W"
+                            }
+                        ]
                     }
                 ]
             }
+            print(f"DEBUG STATE RESPONSE: {response}")
+            return response
         
         return {"headers": headers, "payload": {}}
         
