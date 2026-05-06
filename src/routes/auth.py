@@ -38,11 +38,17 @@ async def authorize(
     print("="*50)
     
     if not client_id or not redirect_uri:
-        print("ERROR: client_id or redirect_uri missing")
-        return HTMLResponse(
-            "<html><body><h1>Erro de Configuração OAuth</h1><p>Parâmetros client_id ou redirect_uri ausentes na requisição.</p></body></html>", 
-            status_code=400
-        )
+        print("WARNING: client_id or redirect_uri missing. Rendering for testing purposes.")
+        # We can still render the page for testing, but it won't be a valid OAuth request
+        return templates.TemplateResponse("login_oauth.html", {
+            "request": request,
+            "client_id": client_id or "TEST_CLIENT",
+            "redirect_uri": redirect_uri or "https://c2c-us.smartthings.com/login/callback",
+            "state": state or "TEST_STATE",
+            "response_type": response_type or "code",
+            "scope": scope or "",
+            "error": "AVISO: Parâmetros OAuth ausentes. Esta página está em modo de teste."
+        })
 
     return templates.TemplateResponse("login_oauth.html", {
         "request": request,

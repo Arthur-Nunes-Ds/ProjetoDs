@@ -163,6 +163,36 @@ async def st_webhook(request: Request):
                     }
                 ]
             }
+
+        # 4. RESPOSTA DE ESTADO (Para os gráficos e valores aparecerem)
+        if interaction_type == "stateRefreshRequest":
+            response_headers = headers.copy()
+            response_headers["interactionType"] = "stateRefreshResponse"
+            
+            return {
+                "headers": response_headers,
+                "deviceState": [
+                    {
+                        "externalDeviceId": "sensor-echode-001",
+                        "states": [
+                            {
+                                "component": "main",
+                                "capability": "st.energyMeter",
+                                "attribute": "energy",
+                                "value": 150.5,
+                                "unit": "kWh"
+                            },
+                            {
+                                "component": "main",
+                                "capability": "st.powerMeter",
+                                "attribute": "power",
+                                "value": 45.2,
+                                "unit": "W"
+                            }
+                        ]
+                    }
+                ]
+            }
         
         return {"headers": headers, "payload": {}}
         
