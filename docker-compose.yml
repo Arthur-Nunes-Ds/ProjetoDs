@@ -1,6 +1,5 @@
 version: '3.8'
 
-#banco + api
 services:
   db:
     image: mysql:8.0
@@ -20,7 +19,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      # AUMENTADO para 120s para garantir que bancos lentos tenham tempo de inicializar do zero
       start_period: 120s
 
   redis:
@@ -52,20 +50,16 @@ services:
       timeout: 5s
       retries: 30
       start_period: 60s
-
-  #nome("um dns interno") para o docker intentificar os serviços internos do docker
+      
   backend_python:
-    #criar a "imagem custon" do back end (o Dockerfile)
     build: .
     container_name: backend_python
     restart: always
     ports:
       - "8080:8080"
-    #fala para ele que o .env contem os dados da variaveis de abiente
     env_file:
       - path: .env
         required: false
-    #fala para o serviço "db"(banco) e espera para o banco está pronto apra roda a API 
     depends_on:
       db:
         condition: service_healthy
